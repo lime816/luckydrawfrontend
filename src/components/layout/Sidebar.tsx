@@ -1,10 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   Trophy,
   Users,
   Sparkles,
+  ChevronDown,
+  ChevronRight,
+  Workflow,
   Award,
   MessageSquare,
   BarChart3,
@@ -40,6 +43,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
   const { hasPageAccess } = usePermissions();
+  const [contestsExpanded, setContestsExpanded] = useState(false);
 
   // Filter navigation items based on user permissions
   const navItems = useMemo(() => {
@@ -89,24 +93,78 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
 
       <nav className="flex-1 p-4 overflow-y-auto">
         <ul className="space-y-1">
-          {navItems.map((item) => (
-            <li key={item.path}>
-              <NavLink
-                to={item.path}
-                onClick={onClose}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-primary-50 text-primary-700 font-medium'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`
-                }
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </NavLink>
-            </li>
-          ))}
+          {navItems.map((item) => {
+            if (item.path === '/contests') {
+              return (
+                <li key={item.path}>
+                  <button
+                    onClick={() => setContestsExpanded(!contestsExpanded)}
+                    className="w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-50"
+                  >
+                    <div className="flex items-center gap-3">
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </div>
+                    {contestsExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  </button>
+                  {contestsExpanded && (
+                    <ul className="ml-4 mt-1 space-y-1">
+                      <li>
+                        <NavLink
+                          to="/contests"
+                          onClick={onClose}
+                          className={({ isActive }) =>
+                            `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                              isActive
+                                ? 'bg-primary-50 text-primary-700 font-medium'
+                                : 'text-gray-600 hover:bg-gray-50'
+                            }`
+                          }
+                        >
+                          <Trophy className="w-4 h-4" />
+                          <span>Contest List</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink
+                          to="/flow-builder"
+                          onClick={onClose}
+                          className={({ isActive }) =>
+                            `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                              isActive
+                                ? 'bg-primary-50 text-primary-700 font-medium'
+                                : 'text-gray-600 hover:bg-gray-50'
+                            }`
+                          }
+                        >
+                          <Workflow className="w-4 h-4" />
+                          <span>Flow Builder</span>
+                        </NavLink>
+                      </li>
+                    </ul>
+                  )}
+                </li>
+              );
+            }
+            return (
+              <li key={item.path}>
+                <NavLink
+                  to={item.path}
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      isActive
+                        ? 'bg-primary-50 text-primary-700 font-medium'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`
+                  }
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </NavLink>
+              </li>
+            );
+          })}
         </ul>
       </nav>
 

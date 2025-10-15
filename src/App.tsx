@@ -15,6 +15,7 @@ import { Analytics } from './pages/Analytics';
 import Communication from './pages/Communication';
 import { Settings } from './pages/Settings';
 import { AdminManagement } from './pages/AdminManagement';
+import { FlowBuilder } from './pages/FlowBuilder';
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
           <Route index element={<Navigate to="/login" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="contests" element={<Contests />} />
+          <Route path="flow-builder" element={<FlowBuilder />} />
           <Route path="participants" element={<Participants />} />
           <Route path="draw" element={<LuckyDraw />} />
           <Route path="winners" element={<Winners />} />
