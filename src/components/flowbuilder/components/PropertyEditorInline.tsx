@@ -30,16 +30,18 @@ export default function PropertyEditorInline({ screenId, element, onClose }: Pro
   }
 
   return (
-    <div className="bg-slate-900/80 border border-slate-700/50 rounded-lg p-4 space-y-3">
+    <div className="bg-white border-2 border-primary-200 rounded-xl p-5 space-y-4 shadow-lg">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-700/50">
-        <div className="flex items-center gap-2">
-          <Settings className="w-4 h-4 text-whatsapp-500" />
-          <h4 className="font-semibold text-white text-sm">Edit {element.type}</h4>
+      <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
+            <Settings className="w-4 h-4 text-primary-600" />
+          </div>
+          <h4 className="font-bold text-gray-900 text-base">Edit {element.type}</h4>
         </div>
         <button 
           onClick={onClose} 
-          className="text-slate-400 hover:text-white transition-colors p-1"
+          className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors p-2 rounded-lg"
           aria-label="Close"
         >
           <X className="w-4 h-4" />
@@ -59,7 +61,7 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
     case 'TextHeading':
       return (
         <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1">Text</label>
+          <label className="block text-xs font-semibold text-gray-700 mb-2">Text</label>
           <input
             type="text"
             value={el.text}
@@ -72,7 +74,7 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
     case 'TextSubheading':
       return (
         <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1">Text</label>
+          <label className="block text-xs font-semibold text-gray-700 mb-2">Text</label>
           <input
             type="text"
             value={el.text}
@@ -86,7 +88,7 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
       return (
         <>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Text</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-2">Text</label>
             <textarea
               value={el.text}
               onChange={(e) => update('text', e.target.value)}
@@ -96,7 +98,7 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Font Weight</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-2">Font Weight</label>
             <select
               value={el.fontWeight || 'normal'}
               onChange={(e) => update('fontWeight', e.target.value)}
@@ -112,9 +114,9 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`strikethrough-${el.id}`}
               checked={!!el.strikethrough}
               onChange={(e) => update('strikethrough', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor={`strikethrough-${el.id}`} className="text-xs text-slate-300">Strikethrough</label>
+            <label htmlFor={`strikethrough-${el.id}`} className="text-sm text-gray-700 font-medium">Strikethrough</label>
           </div>
           <div className="flex items-center gap-2">
             <input
@@ -122,9 +124,9 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`markdown-${el.id}`}
               checked={!!el.markdown}
               onChange={(e) => update('markdown', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor={`markdown-${el.id}`} className="text-xs text-slate-300">Enable Markdown</label>
+            <label htmlFor={`markdown-${el.id}`} className="text-sm text-gray-700 font-medium">Enable Markdown</label>
           </div>
         </>
       )
@@ -132,7 +134,7 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
       return (
         <>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Text</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-2">Text</label>
             <input
               type="text"
               value={el.text}
@@ -142,7 +144,7 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Font Weight</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-2">Font Weight</label>
             <select
               value={el.fontWeight || 'normal'}
               onChange={(e) => update('fontWeight', e.target.value)}
@@ -158,7 +160,7 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`strikethrough-${el.id}`}
               checked={!!el.strikethrough}
               onChange={(e) => update('strikethrough', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
             <label htmlFor={`strikethrough-${el.id}`} className="text-xs text-slate-300">Strikethrough</label>
           </div>
@@ -168,7 +170,7 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`markdown-${el.id}`}
               checked={!!el.markdown}
               onChange={(e) => update('markdown', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
             <label htmlFor={`markdown-${el.id}`} className="text-xs text-slate-300">Enable Markdown</label>
           </div>
@@ -255,9 +257,9 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`required-${el.id}`}
               checked={!!el.required}
               onChange={(e) => update('required', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor={`required-${el.id}`} className="text-xs text-slate-300">Required field</label>
+            <label htmlFor={`required-${el.id}`} className="text-sm text-gray-700 font-medium">Required field</label>
           </div>
         </>
       )
@@ -301,9 +303,9 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`required-${el.id}`}
               checked={!!el.required}
               onChange={(e) => update('required', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor={`required-${el.id}`} className="text-xs text-slate-300">Required field</label>
+            <label htmlFor={`required-${el.id}`} className="text-sm text-gray-700 font-medium">Required field</label>
           </div>
         </>
       )
@@ -367,9 +369,9 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`required-${el.id}`}
               checked={!!el.required}
               onChange={(e) => update('required', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor={`required-${el.id}`} className="text-xs text-slate-300">Required field</label>
+            <label htmlFor={`required-${el.id}`} className="text-sm text-gray-700 font-medium">Required field</label>
           </div>
         </>
       )
@@ -413,9 +415,9 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`required-${el.id}`}
               checked={!!el.required}
               onChange={(e) => update('required', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor={`required-${el.id}`} className="text-xs text-slate-300">Required field</label>
+            <label htmlFor={`required-${el.id}`} className="text-sm text-gray-700 font-medium">Required field</label>
           </div>
         </>
       )
@@ -469,9 +471,9 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`required-${el.id}`}
               checked={!!el.required}
               onChange={(e) => update('required', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor={`required-${el.id}`} className="text-xs text-slate-300">Required field</label>
+            <label htmlFor={`required-${el.id}`} className="text-sm text-gray-700 font-medium">Required field</label>
           </div>
           <OptionsEditor
             options={el.dataSource || []}
@@ -529,9 +531,9 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`required-${el.id}`}
               checked={!!el.required}
               onChange={(e) => update('required', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor={`required-${el.id}`} className="text-xs text-slate-300">Required field</label>
+            <label htmlFor={`required-${el.id}`} className="text-sm text-gray-700 font-medium">Required field</label>
           </div>
           <OptionsEditor
             options={el.dataSource || []}
@@ -569,9 +571,9 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`required-${el.id}`}
               checked={!!el.required}
               onChange={(e) => update('required', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor={`required-${el.id}`} className="text-xs text-slate-300">Required field</label>
+            <label htmlFor={`required-${el.id}`} className="text-sm text-gray-700 font-medium">Required field</label>
           </div>
         </>
       )
@@ -580,7 +582,7 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
       return (
         <>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Text</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-2">Text</label>
             <input
               type="text"
               value={el.text}
@@ -659,9 +661,9 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`required-${el.id}`}
               checked={!!el.required}
               onChange={(e) => update('required', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor={`required-${el.id}`} className="text-xs text-slate-300">Required field</label>
+            <label htmlFor={`required-${el.id}`} className="text-sm text-gray-700 font-medium">Required field</label>
           </div>
         </>
       )
@@ -726,9 +728,9 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`required-${el.id}`}
               checked={!!el.required}
               onChange={(e) => update('required', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor={`required-${el.id}`} className="text-xs text-slate-300">Required field</label>
+            <label htmlFor={`required-${el.id}`} className="text-sm text-gray-700 font-medium">Required field</label>
           </div>
         </>
       )
@@ -994,9 +996,9 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`required-${el.id}`}
               checked={!!el.required}
               onChange={(e) => update('required', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor={`required-${el.id}`} className="text-xs text-slate-300">Required field</label>
+            <label htmlFor={`required-${el.id}`} className="text-sm text-gray-700 font-medium">Required field</label>
           </div>
           <OptionsEditor
             options={el.options}
@@ -1032,9 +1034,9 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`required-${el.id}`}
               checked={!!el.required}
               onChange={(e) => update('required', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor={`required-${el.id}`} className="text-xs text-slate-300">Required field</label>
+            <label htmlFor={`required-${el.id}`} className="text-sm text-gray-700 font-medium">Required field</label>
           </div>
         </>
       )
@@ -1066,9 +1068,9 @@ function renderFields(el: AnyElement, update: (field: string, value: any) => voi
               id={`required-${el.id}`}
               checked={!!el.required}
               onChange={(e) => update('required', e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-whatsapp-500 focus:ring-whatsapp-500"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor={`required-${el.id}`} className="text-xs text-slate-300">Required field</label>
+            <label htmlFor={`required-${el.id}`} className="text-sm text-gray-700 font-medium">Required field</label>
           </div>
           <OptionsEditor
             options={el.options}

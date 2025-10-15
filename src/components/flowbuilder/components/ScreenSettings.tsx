@@ -46,11 +46,18 @@ export default function ScreenSettings({ flowName, setFlowName, customMessage, s
   if (!screen) return null
 
   return (
-    <div className="h-full flex flex-col bg-white border-l border-gray-200">
+    <div className="h-full flex flex-col bg-white rounded-xl shadow-lg border border-gray-200">
       {/* Header */}
-      <div className="flex items-center gap-2 p-4 border-b border-gray-200">
-        <Settings className="w-5 h-5 text-primary-600" />
-        <h3 className="text-base font-semibold text-gray-800">Screen Settings</h3>
+      <div className="bg-gradient-to-r from-primary-50 to-primary-100/50 px-5 py-4 border-b border-primary-200">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-white rounded-lg shadow-sm flex items-center justify-center">
+            <Settings className="w-5 h-5 text-primary-600" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-gray-900">Screen Settings</h3>
+            <p className="text-xs text-gray-600">Configure screen properties</p>
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}

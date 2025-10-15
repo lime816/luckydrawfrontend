@@ -159,89 +159,117 @@ export default function FlowBuilderApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
-        <div className="px-4 py-3">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-gray-800">WhatsApp Flow Builder</h1>
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center shadow-md">
+                <MessageCircle className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">WhatsApp Flow Builder</h1>
+                <p className="text-xs text-gray-500">Design interactive flows for your customers</p>
+              </div>
             </div>
             
             {/* Desktop Actions */}
-            <div className="hidden lg:flex items-center gap-2">
+            <div className="hidden lg:flex items-center gap-3">
+              <button
+                onClick={() => setShowJsonPreview(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all shadow-sm hover:shadow"
+              >
+                <Code2 className="w-4 h-4" />
+                <span className="font-medium">JSON</span>
+              </button>
+
+              <button
+                onClick={() => setShowWhatsAppPreview(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all shadow-sm hover:shadow"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span className="font-medium">Preview</span>
+              </button>
+
               <button
                 onClick={() => setShowFlowsPanel(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all shadow-sm hover:shadow"
               >
-                <Library className="w-4 h-4" />
-                <span>Manage Flows</span>
+                <Download className="w-4 h-4" />
+                <span className="font-medium">Manage Flows</span>
               </button>
               
               <button
                 onClick={() => setShowQRCodePanel(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all shadow-sm hover:shadow"
               >
                 <QrCode className="w-4 h-4" />
-                <span>Flow QR</span>
-              </button>
-              
-              <button
-                onClick={() => setShowWebhookSetup(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <Globe className="w-4 h-4" />
-                <span>Webhooks</span>
+                <span className="font-medium">QR Code</span>
               </button>
               
               <button
                 onClick={() => setShowMessageLibrary(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-md hover:shadow-lg"
               >
-                <MessageCircle className="w-4 h-4" />
-                <span>Message Library</span>
+                <Library className="w-4 h-4" />
+                <span className="font-medium">Messages</span>
               </button>
             </div>
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              className="lg:hidden p-2.5 text-gray-600 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5" />
             </button>
           </div>
 
           {/* Mobile Menu */}
           {showMobileMenu && (
-            <div className="lg:hidden mt-3 pt-3 border-t border-gray-200 space-y-2">
+            <div className="lg:hidden mt-4 pt-4 border-t border-gray-200 space-y-2">
+              <button
+                onClick={() => { setShowJsonPreview(true); setShowMobileMenu(false); }}
+                className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 text-gray-700 rounded-lg hover:bg-white hover:border-primary-300 hover:text-primary-700 transition-all"
+              >
+                <Code2 className="w-5 h-5" />
+                <span className="font-medium">JSON Preview</span>
+              </button>
+              <button
+                onClick={() => { setShowWhatsAppPreview(true); setShowMobileMenu(false); }}
+                className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 text-gray-700 rounded-lg hover:bg-white hover:border-primary-300 hover:text-primary-700 transition-all"
+              >
+                <MessageCircle className="w-5 h-5" />
+                <span className="font-medium">WhatsApp Preview</span>
+              </button>
               <button
                 onClick={() => { setShowFlowsPanel(true); setShowMobileMenu(false); }}
-                className="w-full flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 text-gray-700 rounded-lg hover:bg-white hover:border-primary-300 hover:text-primary-700 transition-all"
               >
-                <Library className="w-4 h-4" />
-                <span>Manage Flows</span>
+                <Download className="w-5 h-5" />
+                <span className="font-medium">Manage Flows</span>
               </button>
               <button
                 onClick={() => { setShowQRCodePanel(true); setShowMobileMenu(false); }}
-                className="w-full flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 text-gray-700 rounded-lg hover:bg-white hover:border-primary-300 hover:text-primary-700 transition-all"
               >
-                <QrCode className="w-4 h-4" />
-                <span>Flow QR</span>
+                <QrCode className="w-5 h-5" />
+                <span className="font-medium">QR Code</span>
               </button>
               <button
                 onClick={() => { setShowWebhookSetup(true); setShowMobileMenu(false); }}
-                className="w-full flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 text-gray-700 rounded-lg hover:bg-white hover:border-primary-300 hover:text-primary-700 transition-all"
               >
-                <Globe className="w-4 h-4" />
-                <span>Webhooks</span>
+                <Globe className="w-5 h-5" />
+                <span className="font-medium">Webhooks</span>
               </button>
               <button
                 onClick={() => { setShowMessageLibrary(true); setShowMobileMenu(false); }}
-                className="w-full flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="w-full flex items-center gap-3 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-sm"
               >
-                <MessageCircle className="w-4 h-4" />
-                <span>Message Library</span>
+                <Library className="w-5 h-5" />
+                <span className="font-medium">Message Library</span>
               </button>
             </div>
           )}
@@ -249,16 +277,64 @@ export default function FlowBuilderApp() {
       </header>
 
       {/* Main Content */}
-      <main className="p-4">
-        <ScreenDesigner 
-          flowName={flowName}
-          setFlowName={setFlowName}
-          customMessage={customMessage}
-          setCustomMessage={setCustomMessage}
-        />
+      <main className="p-6">
+        <div className="max-w-[1600px] mx-auto">
+          <ScreenDesigner 
+            flowName={flowName}
+            setFlowName={setFlowName}
+            customMessage={customMessage}
+            setCustomMessage={setCustomMessage}
+          />
+        </div>
       </main>
 
       {/* Modals and Panels */}
+      {/* JSON Preview Modal */}
+      <AnimatePresence>
+        {showJsonPreview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 overflow-y-auto"
+            onClick={() => setShowJsonPreview(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-lg shadow-2xl max-w-4xl w-full my-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <JsonPreviewPanel json={buildFlowJson(screens)} onClose={() => setShowJsonPreview(false)} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* WhatsApp Preview Modal */}
+      <AnimatePresence>
+        {showWhatsAppPreview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 overflow-y-auto"
+            onClick={() => setShowWhatsAppPreview(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-lg shadow-2xl max-w-md w-full my-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <WhatsAppPreview screens={screens} onClose={() => setShowWhatsAppPreview(false)} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {showFlowsPanel && (
           <motion.div

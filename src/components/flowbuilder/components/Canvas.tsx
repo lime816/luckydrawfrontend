@@ -46,32 +46,34 @@ export default function Canvas() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="glass-panel overflow-hidden"
+      className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
     >
       {/* Screen Header */}
-      <div className="bg-gray-50 p-4 border-b border-gray-200">
+      <div className="bg-gradient-to-r from-primary-50 to-primary-100/50 px-6 py-4 border-b border-primary-200">
         <div className="flex items-center gap-3">
-          <Smartphone className="w-5 h-5 text-primary-600" />
+          <div className="w-10 h-10 bg-white rounded-lg shadow-sm flex items-center justify-center">
+            <Smartphone className="w-5 h-5 text-primary-600" />
+          </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-800">{screen.title}</h3>
-            <p className="text-xs text-gray-500">{screen.elements.length} components</p>
+            <h3 className="text-lg font-bold text-gray-900">{screen.title}</h3>
+            <p className="text-xs text-gray-600">{screen.elements.length} component{screen.elements.length !== 1 ? 's' : ''} • Drag to reorder</p>
           </div>
         </div>
       </div>
 
       {/* Canvas Content */}
-      <div className="p-4 min-h-[400px]">
+      <div className="p-6 min-h-[500px] bg-gradient-to-br from-gray-50 to-white">
         {screen.elements.length === 0 ? (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center py-16 text-center"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center justify-center py-20 text-center"
           >
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Smartphone className="w-8 h-8 text-gray-400" />
+            <div className="w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+              <Smartphone className="w-10 h-10 text-primary-600" />
             </div>
-            <p className="text-gray-600 mb-2">No components yet</p>
-            <p className="text-sm text-gray-500">Add components from the palette on the left</p>
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">Start Building Your Flow</h4>
+            <p className="text-sm text-gray-500 max-w-sm">Drag and drop components from the menu to create your interactive WhatsApp flow</p>
           </motion.div>
         ) : (
           <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -87,67 +89,46 @@ export default function Canvas() {
                       transition={{ delay: idx * 0.05 }}
                       className="relative group"
                     >
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                        {/* Component Preview */}
-                        <div 
-                          onMouseEnter={() => setHoveredId(el.id)}
-                          onMouseLeave={() => setHoveredId(null)}
-                          className="relative"
-                        >
-                          <SortableItem id={el.id}>
-                            <div className="flex-1">
-                              <Preview 
-                                el={el} 
-                                onClick={() => setSelectedElement(el)}
-                                isSelected={selectedElement?.id === el.id}
-                              />
-                            </div>
-                            
-                            {/* Hover Actions */}
-                            <AnimatePresence>
-                              {hoveredId === el.id && (
-                                <motion.button
-                                  initial={{ opacity: 0, scale: 0.8 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  exit={{ opacity: 0, scale: 0.8 }}
-                                  onClick={() => setDeletingElement(el)}
-                                  className="absolute top-2 right-2 btn-danger p-2 z-10"
-                                  aria-label="Delete"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </motion.button>
-                              )}
-                            </AnimatePresence>
-                          </SortableItem>
-                        </div>
-
-                        {/* Inline Property Editor */}
-                        <AnimatePresence>
-                          {selectedElement?.id === el.id && (
-                            <motion.div
-                              initial={{ opacity: 0, x: 20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0, x: -20 }}
-                              className="lg:block hidden"
-                            >
-                              <PropertyEditorInline
-                                screenId={screen.id}
-                                element={el}
-                                onClose={() => setSelectedElement(null)}
-                              />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                      <div 
+                        onMouseEnter={() => setHoveredId(el.id)}
+                        onMouseLeave={() => setHoveredId(null)}
+                        className="relative"
+                      >
+                        <SortableItem id={el.id}>
+                          <div className="flex-1 bg-white rounded-lg border-2 border-gray-200 hover:border-primary-300 transition-all shadow-sm hover:shadow-md">
+                            <Preview 
+                              el={el} 
+                              onClick={() => setSelectedElement(el)}
+                              isSelected={selectedElement?.id === el.id}
+                            />
+                          </div>
+                          
+                          {/* Hover Actions */}
+                          <AnimatePresence>
+                            {hoveredId === el.id && (
+                              <motion.button
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                onClick={() => setDeletingElement(el)}
+                                className="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg shadow-lg z-10 transition-colors"
+                                aria-label="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </motion.button>
+                            )}
+                          </AnimatePresence>
+                        </SortableItem>
                       </div>
 
-                      {/* Mobile: Editor below component */}
+                      {/* Property Editor - Shows below component when selected */}
                       <AnimatePresence>
                         {selectedElement?.id === el.id && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="lg:hidden mt-3"
+                            className="mt-3"
                           >
                             <PropertyEditorInline
                               screenId={screen.id}

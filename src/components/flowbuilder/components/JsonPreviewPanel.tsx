@@ -34,25 +34,25 @@ export default function JsonPreviewPanel({ json, onClose }: JsonPreviewPanelProp
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-        className="fixed right-0 top-0 bottom-0 w-full md:w-2/3 lg:w-1/2 glass-panel border-l border-slate-700 z-[9999] flex flex-col"
+        className="fixed right-0 top-0 bottom-0 w-full md:w-2/3 lg:w-1/2 bg-white border-l border-gray-200 shadow-2xl z-[9999] flex flex-col"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-700">
+        <div className="flex items-center justify-between p-5 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-primary-100/50">
           <div>
-            <h2 className="text-lg font-semibold text-white">JSON Preview</h2>
-            <p className="text-sm text-slate-400">WhatsApp Flow API v7.2</p>
+            <h2 className="text-xl font-bold text-gray-900">JSON Preview</h2>
+            <p className="text-sm text-gray-600">WhatsApp Flow API v7.2</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleCopy}
-              className="btn-secondary flex items-center gap-2"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-primary-300 transition-all shadow-sm"
             >
-              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              {copied ? 'Copied!' : 'Copy'}
+              {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+              <span className="font-medium">{copied ? 'Copied!' : 'Copy JSON'}</span>
             </button>
             <button
               onClick={onClose}
-              className="btn-secondary p-2"
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               aria-label="Close"
             >
               <X className="w-5 h-5" />
@@ -61,8 +61,8 @@ export default function JsonPreviewPanel({ json, onClose }: JsonPreviewPanelProp
         </div>
 
         {/* JSON Content */}
-        <div className="flex-1 overflow-auto p-4">
-          <pre className="json-preview bg-slate-950/50 rounded-lg p-4 text-sm overflow-x-auto">
+        <div className="flex-1 overflow-auto p-6 bg-gray-50">
+          <pre className="bg-white border border-gray-200 rounded-xl p-6 text-sm overflow-x-auto shadow-sm font-mono text-gray-800">
             <code>{jsonString}</code>
           </pre>
         </div>
