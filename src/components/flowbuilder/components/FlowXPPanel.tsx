@@ -7,6 +7,8 @@ import { CSS } from '@dnd-kit/utilities'
 
 interface FlowXPPanelProps {
   onClose: () => void
+  availableFlows?: any[]
+  availableMessages?: any[]
 }
 
 interface MessageStep {
@@ -89,25 +91,12 @@ function SortableMessageStep({ step, onRemove, onEdit }: { step: MessageStep; on
   )
 }
 
-export default function FlowXPPanel({ onClose }: FlowXPPanelProps) {
-  const [messageSteps, setMessageSteps] = useState<MessageStep[]>([
-    {
-      id: '1',
-      type: 'message',
-      name: 'Welcome Message',
-      content: 'Welcome to our Lucky Draw! 🎉',
-      delay: 0
-    },
-    {
-      id: '2',
-      type: 'flow',
-      name: 'Registration Flow',
-      content: 'Lucky Draw Registration Form',
-      delay: 2
-    }
-  ])
+export default function FlowXPPanel({ onClose, availableFlows = [], availableMessages = [] }: FlowXPPanelProps) {
+  const [messageSteps, setMessageSteps] = useState<MessageStep[]>([])
   const [showAddMenu, setShowAddMenu] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [showFlowSelector, setShowFlowSelector] = useState(false)
+  const [showMessageSelector, setShowMessageSelector] = useState(false)
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -123,15 +112,46 @@ export default function FlowXPPanel({ onClose }: FlowXPPanelProps) {
   }
 
   const addMessageStep = (type: 'flow' | 'message') => {
+    if (type === 'flow') {
+      setShowFlowSelector(true)
+    } else {
+      setShowMessageSelector(true)
+    }
+    setShowAddMenu(false)
+  }
+
+  const addFlow = (flow: any) => {
     const newStep: MessageStep = {
       id: Date.now().toString(),
-      type,
-      name: type === 'flow' ? 'New Flow' : 'New Message',
-      content: type === 'flow' ? 'Flow description' : 'Message content',
+      type: 'flow',
+      name: flow.name || flow.title || 'Flow',
+      content: flow.description || 'Interactive WhatsApp Flow',
       delay: 0
     }
     setMessageSteps([...messageSteps, newStep])
-    setShowAddMenu(false)
+    setShowFlowSelector(false)
+  }
+
+  const addMessage = (message: any) => {
+    // Extract content based on message type
+    let content = 'Message content'
+    if (message.contentPayload) {
+      if (message.contentPayload.body) {
+        content = message.contentPayload.body
+      } else if (message.contentPayload.message) {
+        content = message.contentPayload.message
+      }
+    }
+    
+    const newStep: MessageStep = {
+      id: Date.now().toString(),
+      type: 'message',
+      name: message.name || 'Message',
+      content: content,
+      delay: 0
+    }
+    setMessageSteps([...messageSteps, newStep])
+    setShowMessageSelector(false)
   }
 
   const removeStep = (id: string) => {
@@ -292,6 +312,127 @@ export default function FlowXPPanel({ onClose }: FlowXPPanelProps) {
             )}
           </div>
         </div>
+
+        {/* Flow Selector Modal */}
+        <AnimatePresence>
+          {showFlowSelector && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden"
+              >
+                <div className="p-5 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-gray-900">Select a Flow</h3>
+                    <button
+                      onClick={() => setShowFlowSelector(false)}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <X className="w-5 h-5 text-gray-500" />
+                    </button>
+                  </div>
+                </div>
+                <div className="p-5 overflow-y-auto max-h-[60vh]">
+                  {availableFlows.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Workflow className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-600 font-medium">No flows available</p>
+                      <p className="text-sm text-gray-500">Create a flow first in Manage Flows</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-3">
+                      {availableFlows.map((flow) => (
+                        <button
+                          key={flow.id}
+                          onClick={() => addFlow(flow)}
+                          className="text-left p-4 border-2 border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-all"
+                        >
+                          <div className="flex items-start gap-3">
+                            <Workflow className="w-5 h-5 text-primary-600 mt-1" />
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{flow.name || flow.title}</h4>
+                              <p className="text-sm text-gray-600 mt-1">{flow.description || 'WhatsApp Flow'}</p>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Message Selector Modal */}
+        <AnimatePresence>
+          {showMessageSelector && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden"
+              >
+                <div className="p-5 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-gray-900">Select a Message</h3>
+                    <button
+                      onClick={() => setShowMessageSelector(false)}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <X className="w-5 h-5 text-gray-500" />
+                    </button>
+                  </div>
+                </div>
+                <div className="p-5 overflow-y-auto max-h-[60vh]">
+                  {availableMessages.length === 0 ? (
+                    <div className="text-center py-12">
+                      <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-600 font-medium">No messages available</p>
+                      <p className="text-sm text-gray-500">Create a message first in Message Library</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-3">
+                      {availableMessages.map((message) => {
+                        const content = message.contentPayload?.body || message.contentPayload?.message || 'No content'
+                        const typeLabel = message.type?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'Message'
+                        
+                        return (
+                          <button
+                            key={message.messageId}
+                            onClick={() => addMessage(message)}
+                            className="text-left p-4 border-2 border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all"
+                          >
+                            <div className="flex items-start gap-3">
+                              <MessageSquare className="w-5 h-5 text-green-600 mt-1" />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="font-semibold text-gray-900">{message.name || 'Message'}</h4>
+                                  <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                                    {typeLabel}
+                                  </span>
+                                  {message.status === 'published' && (
+                                    <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                                      Published
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-600 mt-1 line-clamp-2">{content}</p>
+                              </div>
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Footer */}
         <div className="p-5 border-t border-gray-200 bg-white">

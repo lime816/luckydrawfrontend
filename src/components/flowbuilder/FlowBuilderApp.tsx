@@ -9,6 +9,7 @@ import QRFlowInitiator from './components/QRFlowInitiator'
 import WebhookSetup from './components/WebhookSetup'
 import MessageLibrary from './components/MessageLibrary'
 import { useFlowStore } from './state/store'
+import { useMessageLibraryStore } from './state/messageLibraryStore'
 import { buildFlowJson } from './utils/jsonBuilder'
 import { downloadText } from './utils/fileWriter'
 import { WhatsAppService } from './utils/whatsappService'
@@ -18,6 +19,7 @@ import { ToastData, ToastType } from './components/Toast'
 
 export default function FlowBuilderApp() {
   const { screens, addScreen } = useFlowStore()
+  const { messages, triggers } = useMessageLibraryStore()
   
   const [showJsonPreview, setShowJsonPreview] = useState(false)
   const [showWhatsAppPreview, setShowWhatsAppPreview] = useState(false)
@@ -177,10 +179,10 @@ export default function FlowBuilderApp() {
             </div>
             
             {/* Desktop Actions */}
-            <div className="hidden lg:flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-2">
               <button
                 onClick={() => setShowJsonPreview(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all shadow-sm hover:shadow"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-200 text-gray-700 rounded-md hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all"
               >
                 <Code2 className="w-4 h-4" />
                 <span className="font-medium">JSON</span>
@@ -188,7 +190,7 @@ export default function FlowBuilderApp() {
 
               <button
                 onClick={() => setShowFlowXP(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all shadow-sm hover:shadow"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-200 text-gray-700 rounded-md hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all"
               >
                 <Zap className="w-4 h-4" />
                 <span className="font-medium">FlowXP</span>
@@ -196,7 +198,7 @@ export default function FlowBuilderApp() {
 
               <button
                 onClick={() => setShowWhatsAppPreview(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all shadow-sm hover:shadow"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-200 text-gray-700 rounded-md hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all"
               >
                 <MessageCircle className="w-4 h-4" />
                 <span className="font-medium">Preview</span>
@@ -204,23 +206,31 @@ export default function FlowBuilderApp() {
 
               <button
                 onClick={() => setShowFlowsPanel(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all shadow-sm hover:shadow"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-200 text-gray-700 rounded-md hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all"
               >
                 <Download className="w-4 h-4" />
-                <span className="font-medium">Manage Flows</span>
+                <span className="font-medium">Flows</span>
               </button>
               
               <button
                 onClick={() => setShowQRCodePanel(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all shadow-sm hover:shadow"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-200 text-gray-700 rounded-md hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all"
               >
                 <QrCode className="w-4 h-4" />
-                <span className="font-medium">QR Code</span>
+                <span className="font-medium">QR</span>
+              </button>
+
+              <button
+                onClick={() => setShowWebhookSetup(true)}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-200 text-gray-700 rounded-md hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all"
+              >
+                <Globe className="w-4 h-4" />
+                <span className="font-medium">Webhooks</span>
               </button>
               
               <button
                 onClick={() => setShowMessageLibrary(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-md hover:shadow-lg"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-all shadow-sm"
               >
                 <Library className="w-4 h-4" />
                 <span className="font-medium">Messages</span>
@@ -331,7 +341,13 @@ export default function FlowBuilderApp() {
 
       {/* FlowXP Modal */}
       <AnimatePresence>
-        {showFlowXP && <FlowXPPanel onClose={() => setShowFlowXP(false)} />}
+        {showFlowXP && (
+          <FlowXPPanel 
+            onClose={() => setShowFlowXP(false)} 
+            availableFlows={allFlows}
+            availableMessages={messages}
+          />
+        )}
       </AnimatePresence>
 
       {/* WhatsApp Preview Modal */}
