@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect } from 'react'
-import { Download, Plus, Code2, MessageCircle, Send, QrCode, Globe, Library, Menu } from 'lucide-react'
+import { Download, Plus, Code2, MessageCircle, Send, QrCode, Globe, Library, Menu, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ScreenDesigner from './screens/ScreenDesigner'
 import JsonPreviewPanel from './components/JsonPreviewPanel'
 import WhatsAppPreview from './components/WhatsAppPreview'
+import FlowXPPanel from './components/FlowXPPanel'
 import QRFlowInitiator from './components/QRFlowInitiator'
 import WebhookSetup from './components/WebhookSetup'
 import MessageLibrary from './components/MessageLibrary'
@@ -21,12 +22,13 @@ export default function FlowBuilderApp() {
   const [showJsonPreview, setShowJsonPreview] = useState(false)
   const [showWhatsAppPreview, setShowWhatsAppPreview] = useState(false)
   const [showSendDialog, setShowSendDialog] = useState(false)
+  const [showFlowsPanel, setShowFlowsPanel] = useState(false)
+  const [showFlowXP, setShowFlowXP] = useState(false)
   const [phoneNumber, setPhoneNumber] = useState('918281348343')
   const [isSending, setIsSending] = useState(false)
   const [flowName, setFlowName] = useState('Lucky Draw Registration')
   const [isCreatingFlow, setIsCreatingFlow] = useState(false)
   const [allFlows, setAllFlows] = useState<any[]>([])
-  const [showFlowsPanel, setShowFlowsPanel] = useState(false)
   const [isLoadingFlows, setIsLoadingFlows] = useState(false)
   const [selectedFlow, setSelectedFlow] = useState<any>(null)
   const [customMessage, setCustomMessage] = useState('Please complete this form to continue with your lucky draw registration.')
@@ -185,6 +187,14 @@ export default function FlowBuilderApp() {
               </button>
 
               <button
+                onClick={() => setShowFlowXP(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all shadow-sm hover:shadow"
+              >
+                <Zap className="w-4 h-4" />
+                <span className="font-medium">FlowXP</span>
+              </button>
+
+              <button
                 onClick={() => setShowWhatsAppPreview(true)}
                 className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all shadow-sm hover:shadow"
               >
@@ -235,6 +245,13 @@ export default function FlowBuilderApp() {
               >
                 <Code2 className="w-5 h-5" />
                 <span className="font-medium">JSON Preview</span>
+              </button>
+              <button
+                onClick={() => { setShowFlowXP(true); setShowMobileMenu(false); }}
+                className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 text-gray-700 rounded-lg hover:bg-white hover:border-primary-300 hover:text-primary-700 transition-all"
+              >
+                <Zap className="w-5 h-5" />
+                <span className="font-medium">FlowXP</span>
               </button>
               <button
                 onClick={() => { setShowWhatsAppPreview(true); setShowMobileMenu(false); }}
@@ -310,6 +327,11 @@ export default function FlowBuilderApp() {
             </motion.div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* FlowXP Modal */}
+      <AnimatePresence>
+        {showFlowXP && <FlowXPPanel onClose={() => setShowFlowXP(false)} />}
       </AnimatePresence>
 
       {/* WhatsApp Preview Modal */}
