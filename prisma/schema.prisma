@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           Int                @id @default(autoincrement()) @map("admin_id")
+  name         String             @db.VarChar(100)
+  email        String             @unique @db.VarChar(150)
+  passwordHash String             @map("password_hash") @db.VarChar(255)
+  role         role_type          @default(ADMIN)
+  twoFactor    Boolean            @default(false) @map("two_factor")
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamp(6)
+  lastLogin    DateTime?          @map("last_login") @db.Timestamp(6)
+  activityLogs AdminActivityLog[]
+  contests     Contest[]
+  draws        Draw[]
+  messages     Message[]
+
+  @@map("admins")
+}
+
+model AdminActivityLog {
+  id          Int            @id @default(autoincrement()) @map("log_id")
+  adminId     Int            @map("admin_id")
+  action      String
+  targetTable String         @map("target_table") @db.VarChar(100)
+  targetId    Int?           @map("target_id")
+  sessionId   String?        @map("session_id") @db.VarChar(255)
+  status      activity_status @default(SUCCESS)
+  timestamp   DateTime       @default(now()) @db.Timestamp(6)
+  admin       Admin          @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("admin_activity_log")
+}
+
+model Contest {
+  id           Int             @id @default(autoincrement()) @map("contest_id")
+  name         String          @db.VarChar(150)
+  theme        String?         @db.VarChar(150)
+  description  String?
+  entryFormId  Int?            @map("entry_form_id")
+  startDate    DateTime        @map("start_date") @db.Timestamp(6)
+  endDate      DateTime        @map("end_date") @db.Timestamp(6)
+  entryRules   Json?           @map("entry_rules")
+  status       contest_status  @default(UPCOMING)
+  createdBy    Int?            @map("created_by")
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamp(6)
+  qrCodeUrl    String?         @map("qr_code_url") @db.VarChar(500)
+  creator      Admin?          @relation(fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  entryForm    Form?           @relation(fields: [entryFormId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  draws        Draw[]
+  messages     Message[]
+  participants Participant[]
+  prizes       Prize[]
+
+  @@map("contests")
+}
+
+model Prize {
+  id          Int      @id @default(autoincrement()) @map("prize_id")
+  contestId   Int      @map("contest_id")
+  prizeName   String   @map("prize_name") @db.VarChar(150)
+  value       Decimal? @db.Decimal(12, 2)
+  quantity    Int      @default(1)
+  description String?
+  contest     Contest  @relation(fields: [contestId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  winners     Winner[]
+
+  @@map("prizes")
+}
+
+model Participant {
+  id             Int           @id @default(autoincrement()) @map("participant_id")
+  contestId      Int           @map("contest_id")
+  name           String        @db.VarChar(150)
+  formResponseId Int?          @map("form_response_id")
+  contact        String        @db.VarChar(150)
+  entryTimestamp DateTime      @default(now()) @map("entry_timestamp") @db.Timestamp(6)
+  validated      Boolean       @default(true)
+  uniqueToken    String?       @unique @map("unique_token") @db.VarChar(255)
+  contest        Contest       @relation(fields: [contestId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  formResponse   FormResponse? @relation(fields: [formResponseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  winners        Winner[]
+  messages       Message[]
+
+  @@map("participants")
+}
+
+model Draw {
+  id           Int       @id @default(autoincrement()) @map("draw_id")
+  contestId    Int       @map("contest_id")
+  drawMode     draw_mode @map("draw_mode")
+  executedBy   Int?      @map("executed_by")
+  executedAt   DateTime  @default(now()) @map("executed_at") @db.Timestamp(6)
+  totalWinners Int       @map("total_winners")
+  contest      Contest   @relation(fields: [contestId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  executor     Admin?    @relation(fields: [executedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  winners      Winner[]
+
+  @@map("draws")
+}
+
+model Winner {
+  id            Int          @id @default(autoincrement()) @map("winner_id")
+  drawId        Int          @map("draw_id")
+  participantId Int          @map("participant_id")
+  prizeId       Int?         @map("prize_id")
+  prizeStatus   prize_status @default(PENDING) @map("prize_status")
+  notified      Boolean      @default(false)
+  notifiedAt    DateTime?    @map("notified_at") @db.Timestamp(6)
+  draw          Draw         @relation(fields: [drawId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  participant   Participant  @relation(fields: [participantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  prize         Prize?       @relation(fields: [prizeId], references: [id], onUpdate: NoAction)
+
+  @@map("winners")
+}
+
+model Message {
+  id            Int          @id @default(autoincrement()) @map("message_id")
+  contestId     Int          @map("contest_id")
+  participantId Int?         @map("participant_id")
+  type          message_type
+  recipient     String       @db.VarChar(150)
+  content       String
+  sentAt        DateTime     @default(now()) @map("sent_at") @db.Timestamp(6)
+  sentBy        Int?         @map("sent_by")
+  isAuto        Boolean      @default(false) @map("is_auto")
+  contest       Contest      @relation(fields: [contestId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  participant   Participant? @relation(fields: [participantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sender        Admin?       @relation(fields: [sentBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("messages")
+}
+
+model Form {
+  id         Int            @id @default(autoincrement()) @map("form_id")
+  formName   String         @map("form_name") @db.VarChar(150)
+  formSchema Json?          @map("form_schema")
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
+  contests   Contest[]
+  responses  FormResponse[]
+
+  @@map("forms")
+}
+
+model FormResponse {
+  id           Int           @id @default(autoincrement()) @map("response_id")
+  formId       Int?          @map("form_id")
+  responseData Json?         @map("response_data")
+  submittedAt  DateTime      @default(now()) @map("submitted_at") @db.Timestamp(6)
+  form         Form?         @relation(fields: [formId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  participants Participant[]
+
+  @@map("form_responses")
+}
+
+enum activity_status {
+  SUCCESS
+  FAILURE
+  PENDING
+}
+
+enum contest_status {
+  DRAFT
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum draw_mode {
+  RANDOM
+  MANUAL
+  WEIGHTED
+}
+
+enum message_type {
+  EMAIL
+  SMS
+  WHATSAPP
+  PUSH
+}
+
+enum prize_status {
+  PENDING
+  CLAIMED
+  SHIPPED
+}
+
+enum role_type {
+  ADMIN
+  SUPERADMIN
+  MODERATOR
+}
