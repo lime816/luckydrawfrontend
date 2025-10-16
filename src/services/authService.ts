@@ -171,6 +171,18 @@ export class AuthService {
       const supabaseUser = data.user;
       const metadata = supabaseUser.user_metadata || {};
 
+      // Sync Super Admin to admins table (for visibility and tracking)
+      try {
+        await AdminService.syncSuperAdminFromAuth(
+          supabaseUser.id,
+          supabaseUser.email || email,
+          metadata.name || metadata.full_name || 'Super Admin'
+        );
+      } catch (syncError) {
+        console.warn('Failed to sync Super Admin to admins table:', syncError);
+        // Continue authentication even if sync fails
+      }
+
       // Create user object for Super Admin with full permissions
       const user: User = {
         id: supabaseUser.id,

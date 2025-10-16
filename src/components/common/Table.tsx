@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 interface Column<T> {
   key: string;
   header: string;
-  render?: (item: T) => React.ReactNode;
+  render?: (item: T, index: number) => React.ReactNode;
   sortable?: boolean;
 }
 
@@ -69,7 +69,7 @@ export function Table<T extends Record<string, any>>({
             >
               {columns.map((column) => (
                 <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {column.render ? column.render(item) : item[column.key]}
+                  {column.render ? column.render(item, index) : item[column.key]}
                 </td>
               ))}
             </tr>

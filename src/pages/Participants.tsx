@@ -1,64 +1,64 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Download, Upload, UserX, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Filter, Download, Upload, UserX, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Badge } from '../components/common/Badge';
 import { Table } from '../components/common/Table';
-import { Participant, ParticipationMethod } from '../types';
 import { formatDate, downloadCSV } from '../utils/helpers';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
 import { useLocation } from 'react-router-dom';
+import { ParticipantService, Participant } from '../services/participantService';
 
 export const Participants: React.FC = () => {
   const location = useLocation();
-  const [participants, setParticipants] = useState<Participant[]>([
-    {
-      id: '1',
-      name: 'Rajesh Kumar',
-      email: 'rajesh@example.com',
-      phone: '+91 98765 43210',
-      contestId: '1',
-      entryDate: '2025-09-20T10:30:00Z',
-      entryMethod: 'Online' as unknown as ParticipationMethod,
-      ipAddress: '192.168.1.1',
-      deviceId: 'device-001',
-      isDuplicate: false,
-      isValid: true,
-    },
-    {
-      id: '2',
-      name: 'Priya Sharma',
-      email: 'priya@example.com',
-      phone: '+91 98765 43211',
-      contestId: '1',
-      entryDate: '2025-09-21T14:20:00Z',
-      entryMethod: 'Online' as unknown as ParticipationMethod,
-      ipAddress: '192.168.1.2',
-      deviceId: 'device-002',
-      isDuplicate: false,
-      isValid: true,
-    },
-    {
-      id: '3',
-      name: 'Amit Patel',
-      email: 'amit@example.com',
-      phone: '+91 98765 43212',
-      contestId: '1',
-      entryDate: '2025-09-22T09:15:00Z',
-      entryMethod: 'Online' as unknown as ParticipationMethod,
-      ipAddress: '192.168.1.1',
-      deviceId: 'device-001',
-      isDuplicate: true,
-      isValid: false,
-    },
-  ]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ total: 0, valid: 0, invalid: 0, contests: 0 });
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterValid, setFilterValid] = useState<'ALL' | 'VALID' | 'INVALID'>('ALL');
-  const [selectedContest, setSelectedContest] = useState<string>('ALL');
-  const [highlightedParticipantId, setHighlightedParticipantId] = useState<string | null>(null);
+  const [selectedContest, setSelectedContest] = useState<number | 'ALL'>('ALL');
+  const [highlightedParticipantId, setHighlightedParticipantId] = useState<number | null>(null);
+  const [contests, setContests] = useState<Array<{ contest_id: number; name: string }>>([]);
+
+  // Load participants from database
+  useEffect(() => {
+    loadParticipants();
+    loadContests();
+  }, []);
+
+  const loadParticipants = async () => {
+    try {
+      setLoading(true);
+      const data = await ParticipantService.getAllParticipants();
+      setParticipants(data);
+      
+      // Load stats
+      const statsData = await ParticipantService.getParticipantStats();
+      setStats(statsData);
+    } catch (error) {
+      console.error('Error loading participants:', error);
+      toast.error('Failed to load participants');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadContests = async () => {
+    try {
+      const { supabase } = await import('../lib/supabase-db');
+      const { data } = await supabase
+        .from('contests')
+        .select('contest_id, name')
+        .order('created_at', { ascending: false });
+      
+      if (data) setContests(data);
+    } catch (error) {
+      console.error('Error loading contests:', error);
+    }
+  };
 
   // Handle search navigation - highlight searched participant
   useEffect(() => {
@@ -88,13 +88,12 @@ export const Participants: React.FC = () => {
   const filteredParticipants = participants.filter((participant) => {
     const matchesSearch =
       participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      participant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      participant.phone.includes(searchTerm);
+      participant.contact.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesValid =
       filterValid === 'ALL' ||
-      (filterValid === 'VALID' && participant.isValid) ||
-      (filterValid === 'INVALID' && !participant.isValid);
-    const matchesContest = selectedContest === 'ALL' || participant.contestId === selectedContest;
+      (filterValid === 'VALID' && participant.validated) ||
+      (filterValid === 'INVALID' && !participant.validated);
+    const matchesContest = selectedContest === 'ALL' || participant.contest_id === selectedContest;
     return matchesSearch && matchesValid && matchesContest;
   });
 
@@ -105,32 +104,30 @@ export const Participants: React.FC = () => {
       render: (participant: Participant) => (
         <div>
           <p className="font-medium text-gray-900">{participant.name}</p>
-          <p className="text-sm text-gray-500">{participant.email}</p>
+          <p className="text-sm text-gray-500">{participant.contact}</p>
         </div>
       ),
     },
     {
-      key: 'phone',
-      header: 'Phone',
-    },
-    {
-      key: 'entryMethod',
-      header: 'Entry Method',
+      key: 'contest',
+      header: 'Contest',
       render: (participant: Participant) => (
-        <Badge variant="info">{participant.entryMethod}</Badge>
+        <span className="text-sm text-gray-700">
+          {participant.contest?.name || 'N/A'}
+        </span>
       ),
     },
     {
-      key: 'entryDate',
+      key: 'entry_timestamp',
       header: 'Entry Date',
-      render: (participant: Participant) => formatDate(participant.entryDate, 'MMM dd, yyyy HH:mm'),
+      render: (participant: Participant) => formatDate(participant.entry_timestamp, 'MMM dd, yyyy HH:mm'),
     },
     {
       key: 'status',
       header: 'Status',
       render: (participant: Participant) => (
         <div className="flex items-center gap-2">
-          {participant.isValid ? (
+          {participant.validated ? (
             <>
               <CheckCircle className="w-4 h-4 text-green-600" />
               <span className="text-sm text-green-600">Valid</span>
@@ -141,11 +138,6 @@ export const Participants: React.FC = () => {
               <span className="text-sm text-red-600">Invalid</span>
             </>
           )}
-          {participant.isDuplicate && (
-            <Badge variant="warning" size="sm">
-              Duplicate
-            </Badge>
-          )}
         </div>
       ),
     },
@@ -154,12 +146,10 @@ export const Participants: React.FC = () => {
   const handleExportCSV = () => {
     const exportData = filteredParticipants.map((p) => ({
       Name: p.name,
-      Email: p.email,
-      Phone: p.phone,
-      'Entry Method': p.entryMethod,
-      'Entry Date': formatDate(p.entryDate, 'yyyy-MM-dd HH:mm:ss'),
-      Valid: p.isValid ? 'Yes' : 'No',
-      Duplicate: p.isDuplicate ? 'Yes' : 'No',
+      Contact: p.contact,
+      Contest: p.contest?.name || 'N/A',
+      'Entry Date': formatDate(p.entry_timestamp, 'yyyy-MM-dd HH:mm:ss'),
+      Valid: p.validated ? 'Yes' : 'No',
     }));
     downloadCSV(exportData, `participants-${Date.now()}`);
     toast.success('Participants exported successfully!');
@@ -168,12 +158,10 @@ export const Participants: React.FC = () => {
   const handleExportExcel = () => {
     const exportData = filteredParticipants.map((p) => ({
       Name: p.name,
-      Email: p.email,
-      Phone: p.phone,
-      'Entry Method': p.entryMethod,
-      'Entry Date': formatDate(p.entryDate, 'yyyy-MM-dd HH:mm:ss'),
-      Valid: p.isValid ? 'Yes' : 'No',
-      Duplicate: p.isDuplicate ? 'Yes' : 'No',
+      Contact: p.contact,
+      Contest: p.contest?.name || 'N/A',
+      'Entry Date': formatDate(p.entry_timestamp, 'yyyy-MM-dd HH:mm:ss'),
+      Valid: p.validated ? 'Yes' : 'No',
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
@@ -206,9 +194,15 @@ export const Participants: React.FC = () => {
     reader.readAsArrayBuffer(file);
   };
 
-  const handleRemoveDuplicates = () => {
-    const validParticipants = participants.filter((p) => !p.isDuplicate);
-    setParticipants(validParticipants);
+  const handleToggleValidation = async (participantId: number, validated: boolean) => {
+    try {
+      await ParticipantService.validateParticipant(participantId, validated);
+      toast.success(`Participant ${validated ? 'validated' : 'invalidated'} successfully`);
+      loadParticipants();
+    } catch (error) {
+      console.error('Error updating validation:', error);
+      toast.error('Failed to update participant');
+    }
   };
 
   return (
@@ -248,32 +242,26 @@ export const Participants: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <div className="text-center">
-            <p className="text-3xl font-bold text-gray-900">{participants.length}</p>
+            <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
             <p className="text-sm text-gray-600 mt-1">Total Participants</p>
           </div>
         </Card>
         <Card>
           <div className="text-center">
-            <p className="text-3xl font-bold text-green-600">
-              {participants.filter((p) => p.isValid).length}
-            </p>
+            <p className="text-3xl font-bold text-green-600">{stats.valid}</p>
             <p className="text-sm text-gray-600 mt-1">Valid Entries</p>
           </div>
         </Card>
         <Card>
           <div className="text-center">
-            <p className="text-3xl font-bold text-red-600">
-              {participants.filter((p) => !p.isValid).length}
-            </p>
+            <p className="text-3xl font-bold text-red-600">{stats.invalid}</p>
             <p className="text-sm text-gray-600 mt-1">Invalid Entries</p>
           </div>
         </Card>
         <Card>
           <div className="text-center">
-            <p className="text-3xl font-bold text-yellow-600">
-              {participants.filter((p) => p.isDuplicate).length}
-            </p>
-            <p className="text-sm text-gray-600 mt-1">Duplicates</p>
+            <p className="text-3xl font-bold text-blue-600">{stats.contests}</p>
+            <p className="text-sm text-gray-600 mt-1">Contests</p>
           </div>
         </Card>
       </div>
@@ -304,18 +292,22 @@ export const Participants: React.FC = () => {
           <div className="flex items-center gap-2">
             <select
               value={selectedContest}
-              onChange={(e) => setSelectedContest(e.target.value)}
+              onChange={(e) => setSelectedContest(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
               className="input-field"
             >
               <option value="ALL">All Contests</option>
-              <option value="1">Summer Festival Giveaway</option>
-              <option value="2">Diwali Special Draw</option>
+              {contests.map((contest) => (
+                <option key={contest.contest_id} value={contest.contest_id}>
+                  {contest.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
-        {participants.filter((p) => p.isDuplicate).length > 0 && (
-          <div className="mt-4">
-            
+        {loading && (
+          <div className="mt-4 flex items-center justify-center py-4">
+            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+            <span className="ml-2 text-gray-600">Loading participants...</span>
           </div>
         )}
       </Card>

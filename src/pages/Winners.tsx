@@ -1,94 +1,68 @@
-import React, { useState } from 'react';
-import { Search, Filter, Download, Send, CheckCircle, Package, Truck, AlertTriangle, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, Download, Send, CheckCircle, Package, Truck, AlertTriangle, X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Badge } from '../components/common/Badge';
 import { Table } from '../components/common/Table';
-import { Winner, PrizeStatus } from '../types';
 import { formatDate, downloadCSV } from '../utils/helpers';
 import toast from 'react-hot-toast';
+import { WinnerService, Winner } from '../services/winnerService';
+
+type PrizeStatus = 'PENDING' | 'CLAIMED' | 'SHIPPED';
 
 export const Winners: React.FC = () => {
-  const [winners, setWinners] = useState<Winner[]>([
-    {
-      id: '1',
-      participantId: '1',
-      participant: {
-        id: '1',
-        name: 'Rajesh Kumar',
-        email: 'rajesh@example.com',
-        phone: '+91 98765 43210',
-        contestId: '1',
-        entryDate: '2025-09-20T10:30:00Z',
-        entryMethod: 'QR' as any,
-        isDuplicate: false,
-        isValid: true,
-      },
-      contestId: '1',
-      contest: {} as any,
-      prize: {
-        id: '1',
-        name: 'iPhone 15 Pro',
-        value: 120000,
-        quantity: 1,
-      },
-      wonAt: '2025-09-25T15:30:00Z',
-      prizeStatus: PrizeStatus.PENDING,
-      notificationSent: false,
-    },
-    {
-      id: '2',
-      participantId: '2',
-      participant: {
-        id: '2',
-        name: 'Priya Sharma',
-        email: 'priya@example.com',
-        phone: '+91 98765 43211',
-        contestId: '1',
-        entryDate: '2025-09-21T14:20:00Z',
-        entryMethod: 'WHATSAPP' as any,
-        isDuplicate: false,
-        isValid: true,
-      },
-      contestId: '1',
-      contest: {} as any,
-      prize: {
-        id: '2',
-        name: 'AirPods Pro',
-        value: 25000,
-        quantity: 1,
-      },
-      wonAt: '2025-09-25T15:30:00Z',
-      prizeStatus: PrizeStatus.CLAIMED,
-      notificationSent: true,
-      claimedAt: '2025-09-26T10:00:00Z',
-    },
-  ]);
-
+  const [winners, setWinners] = useState<Winner[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<PrizeStatus | 'ALL'>('ALL');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedWinner, setSelectedWinner] = useState<Winner | null>(null);
   const [newStatus, setNewStatus] = useState<PrizeStatus | null>(null);
+  const [stats, setStats] = useState({ total: 0, pending: 0, claimed: 0, shipped: 0 });
+
+  // Load winners from database
+  useEffect(() => {
+    loadWinners();
+  }, []);
+
+  const loadWinners = async () => {
+    try {
+      setLoading(true);
+      const data = await WinnerService.getAllWinners();
+      setWinners(data);
+      
+      // Load stats
+      const statsData = await WinnerService.getWinnerStats();
+      setStats({
+        total: statsData.total,
+        pending: statsData.pending,
+        claimed: statsData.claimed,
+        shipped: statsData.shipped
+      });
+    } catch (error) {
+      console.error('Error loading winners:', error);
+      toast.error('Failed to load winners');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredWinners = winners.filter((winner) => {
     const matchesSearch =
-      winner.participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      winner.participant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      winner.prize.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'ALL' || winner.prizeStatus === filterStatus;
+      winner.participant?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      winner.participant?.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      winner.prize?.prize_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'ALL' || winner.prize_status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
   const getStatusBadge = (status: PrizeStatus) => {
     const variants: Record<PrizeStatus, { variant: 'success' | 'warning' | 'info' | 'default' | 'danger'; icon: React.ReactNode }> = {
-      [PrizeStatus.PENDING]: { variant: 'warning', icon: <CheckCircle className="w-3 h-3" /> },
-      [PrizeStatus.NOTIFIED]: { variant: 'info', icon: <Send className="w-3 h-3" /> },
-      [PrizeStatus.CLAIMED]: { variant: 'default', icon: <CheckCircle className="w-3 h-3" /> },
-      [PrizeStatus.DISPATCHED]: { variant: 'info', icon: <Package className="w-3 h-3" /> },
-      [PrizeStatus.DELIVERED]: { variant: 'success', icon: <Truck className="w-3 h-3" /> },
+      PENDING: { variant: 'warning', icon: <CheckCircle className="w-3 h-3" /> },
+      CLAIMED: { variant: 'default', icon: <CheckCircle className="w-3 h-3" /> },
+      SHIPPED: { variant: 'success', icon: <Truck className="w-3 h-3" /> },
     };
     const { variant, icon } = variants[status];
     return (
@@ -107,9 +81,8 @@ export const Winners: React.FC = () => {
       header: 'Winner',
       render: (winner: Winner) => (
         <div>
-          <p className="font-medium text-gray-900">{winner.participant.name}</p>
-          <p className="text-sm text-gray-500">{winner.participant.email}</p>
-          <p className="text-sm text-gray-500">{winner.participant.phone}</p>
+          <p className="font-medium text-gray-900">{winner.participant?.name || 'N/A'}</p>
+          <p className="text-sm text-gray-500">{winner.participant?.contact || 'N/A'}</p>
         </div>
       ),
     },
@@ -118,44 +91,70 @@ export const Winners: React.FC = () => {
       header: 'Prize',
       render: (winner: Winner) => (
         <div>
-          <p className="font-medium text-gray-900">{winner.prize.name}</p>
-          <p className="text-sm text-gray-500">₹{winner.prize.value.toLocaleString()}</p>
+          <p className="font-medium text-gray-900">{winner.prize?.prize_name || 'N/A'}</p>
+          <p className="text-sm text-gray-500">
+            {winner.prize?.value ? `₹${winner.prize.value.toLocaleString()}` : 'N/A'}
+          </p>
         </div>
       ),
     },
     {
       key: 'wonAt',
       header: 'Won Date',
-      render: (winner: Winner) => formatDate(winner.wonAt, 'MMM dd, yyyy'),
+      render: (winner: Winner) => formatDate(winner.draw?.executed_at || new Date().toISOString(), 'MMM dd, yyyy'),
     },
     {
       key: 'status',
       header: 'Prize Status',
-      render: (winner: Winner) => getStatusBadge(winner.prizeStatus),
+      render: (winner: Winner) => getStatusBadge(winner.prize_status),
     },
-    ///{
-     /* key: 'notification',
+    {
+      key: 'notification',
       header: 'Notification',
       render: (winner: Winner) => (
-        <Badge variant={winner.notificationSent ? 'success' : 'warning'} size="sm">
-    /     {winner.notificationSent ? 'Sent' : 'Pending'}*/
-    ///    </Badge>
-    ///  ),
-    ///},
+        <Badge variant={winner.notified ? 'success' : 'warning'} size="sm">
+          {winner.notified ? 'Sent' : 'Pending'}
+        </Badge>
+      ),
+    },
     {
       key: 'actions',
       header: 'Actions',
       render: (winner: Winner) => (
         <div className="flex items-center gap-2">
-          {/* Status Toggle Button */}
-          {(winner.prizeStatus === PrizeStatus.PENDING || winner.prizeStatus === PrizeStatus.CLAIMED) && (
+          {/* Send Notification Button */}
+          {!winner.notified && (
             <Button
               size="sm"
-              variant={winner.prizeStatus === PrizeStatus.PENDING ? 'secondary' : 'success'}
-              onClick={() => handleStatusToggle(winner, winner.prizeStatus === PrizeStatus.PENDING ? PrizeStatus.CLAIMED : PrizeStatus.PENDING)}
-              className={winner.prizeStatus === PrizeStatus.PENDING ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-300' : ''}
+              variant="secondary"
+              onClick={() => handleSendNotification(winner.winner_id)}
+              icon={<Send className="w-4 h-4" />}
             >
-              {winner.prizeStatus === PrizeStatus.PENDING ? 'Pending' : 'Claimed'}
+              Notify
+            </Button>
+          )}
+          
+          {/* Status Toggle Button */}
+          {(winner.prize_status === 'PENDING' || winner.prize_status === 'CLAIMED') && (
+            <Button
+              size="sm"
+              variant={winner.prize_status === 'PENDING' ? 'secondary' : 'success'}
+              onClick={() => handleStatusToggle(winner, winner.prize_status === 'PENDING' ? 'CLAIMED' : 'PENDING')}
+              className={winner.prize_status === 'PENDING' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-300' : ''}
+            >
+              {winner.prize_status === 'PENDING' ? 'Pending' : 'Claimed'}
+            </Button>
+          )}
+          
+          {/* Ship Button */}
+          {winner.prize_status === 'CLAIMED' && (
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => handleStatusToggle(winner, 'SHIPPED')}
+              icon={<Truck className="w-4 h-4" />}
+            >
+              Ship
             </Button>
           )}
         </div>
@@ -163,13 +162,15 @@ export const Winners: React.FC = () => {
     },
   ];
 
-  const handleSendNotification = (winnerId: string) => {
-    setWinners(
-      winners.map((w) =>
-        w.id === winnerId ? { ...w, notificationSent: true, prizeStatus: PrizeStatus.NOTIFIED } : w
-      )
-    );
-    toast.success('Notification sent successfully!');
+  const handleSendNotification = async (winnerId: number) => {
+    try {
+      await WinnerService.markAsNotified(winnerId);
+      toast.success('Notification sent successfully!');
+      loadWinners();
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      toast.error('Failed to send notification');
+    }
   };
 
   const handleStatusToggle = (winner: Winner, status: PrizeStatus) => {
@@ -178,73 +179,55 @@ export const Winners: React.FC = () => {
     setShowConfirmModal(true);
   };
 
-  const confirmStatusChange = () => {
+  const confirmStatusChange = async () => {
     if (!selectedWinner || !newStatus) return;
 
-    setWinners(
-      winners.map((w) =>
-        w.id === selectedWinner.id
-          ? {
-              ...w,
-              prizeStatus: newStatus,
-              claimedAt: newStatus === PrizeStatus.CLAIMED ? new Date().toISOString() : w.claimedAt,
-            }
-          : w
-      )
-    );
-    
-    toast.success(`Status updated to ${newStatus.toLowerCase()}!`);
-    setShowConfirmModal(false);
-    setSelectedWinner(null);
-    setNewStatus(null);
-  };
-
-  const handleUpdateStatus = (winnerId: string, status: PrizeStatus) => {
-    setWinners(
-      winners.map((w) =>
-        w.id === winnerId
-          ? {
-              ...w,
-              prizeStatus: status,
-              dispatchedAt: status === PrizeStatus.DISPATCHED ? new Date().toISOString() : w.dispatchedAt,
-            }
-          : w
-      )
-    );
-    toast.success('Prize status updated!');
+    try {
+      await WinnerService.updatePrizeStatus(selectedWinner.winner_id, newStatus);
+      toast.success(`Status updated to ${newStatus.toLowerCase()}!`);
+      loadWinners();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error('Failed to update status');
+    } finally {
+      setShowConfirmModal(false);
+      setSelectedWinner(null);
+      setNewStatus(null);
+    }
   };
 
   const handleExportReport = () => {
     const exportData = filteredWinners.map((w) => ({
-      Winner: w.participant.name,
-      Email: w.participant.email,
-      Phone: w.participant.phone,
-      Prize: w.prize.name,
-      'Prize Value': `₹${w.prize.value}`,
-      'Won Date': formatDate(w.wonAt, 'yyyy-MM-dd'),
-      Status: w.prizeStatus,
-      'Notification Sent': w.notificationSent ? 'Yes' : 'No',
-      'Dispatched Date': w.dispatchedAt ? formatDate(w.dispatchedAt, 'yyyy-MM-dd') : 'N/A',
+      Winner: w.participant?.name || 'N/A',
+      Contact: w.participant?.contact || 'N/A',
+      Prize: w.prize?.prize_name || 'N/A',
+      'Prize Value': w.prize?.value ? `₹${w.prize.value}` : 'N/A',
+      'Won Date': formatDate(w.draw?.executed_at || new Date().toISOString(), 'yyyy-MM-dd'),
+      Status: w.prize_status,
+      'Notification Sent': w.notified ? 'Yes' : 'No',
+      'Notified At': w.notified_at ? formatDate(w.notified_at, 'yyyy-MM-dd') : 'N/A',
     }));
     downloadCSV(exportData, `winners-report-${Date.now()}`);
     toast.success('Report exported successfully!');
   };
 
-  const handleBulkNotify = () => {
-    const pendingNotifications = winners.filter((w) => !w.notificationSent);
-    setWinners(
-      winners.map((w) =>
-        !w.notificationSent ? { ...w, notificationSent: true, prizeStatus: PrizeStatus.NOTIFIED } : w
-      )
-    );
-    toast.success(`Sent notifications to ${pendingNotifications.length} winners!`);
-  };
-
-  const stats = {
-    total: winners.length,
-    pending: winners.filter((w) => w.prizeStatus === PrizeStatus.PENDING).length,
-    claimed: winners.filter((w) => w.prizeStatus === PrizeStatus.CLAIMED).length,
-    delivered: winners.filter((w) => w.prizeStatus === PrizeStatus.DELIVERED).length,
+  const handleBulkNotify = async () => {
+    try {
+      const pendingWinners = winners.filter((w) => !w.notified);
+      const winnerIds = pendingWinners.map(w => w.winner_id);
+      
+      if (winnerIds.length === 0) {
+        toast('No pending notifications', { icon: 'ℹ️' });
+        return;
+      }
+      
+      await WinnerService.bulkMarkAsNotified(winnerIds);
+      toast.success(`Sent notifications to ${winnerIds.length} winners!`);
+      loadWinners();
+    } catch (error) {
+      console.error('Error sending bulk notifications:', error);
+      toast.error('Failed to send notifications');
+    }
   };
 
   return (
@@ -256,6 +239,14 @@ export const Winners: React.FC = () => {
           <p className="text-gray-600 mt-1 text-sm sm:text-base">Manage winners and prize distribution</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <Button
+            variant="secondary"
+            icon={<Send className="w-5 h-5" />}
+            onClick={handleBulkNotify}
+            className="w-full sm:w-auto"
+          >
+            Notify All
+          </Button>
           <Button
             variant="primary"
             icon={<Download className="w-5 h-5" />}
@@ -289,8 +280,8 @@ export const Winners: React.FC = () => {
         </Card>
         <Card>
           <div className="text-center">
-            <p className="text-3xl font-bold text-green-600">{stats.delivered}</p>
-            <p className="text-sm text-gray-600 mt-1">Delivered</p>
+            <p className="text-3xl font-bold text-blue-600">{stats.shipped}</p>
+            <p className="text-sm text-gray-600 mt-1">Shipped</p>
           </div>
         </Card>
       </div>
@@ -314,14 +305,18 @@ export const Winners: React.FC = () => {
               className="input-field"
             >
               <option value="ALL">All Status</option>
-              <option value={PrizeStatus.PENDING}>Pending</option>
-              <option value={PrizeStatus.NOTIFIED}>Notified</option>
-              <option value={PrizeStatus.CLAIMED}>Claimed</option>
-              <option value={PrizeStatus.DISPATCHED}>Dispatched</option>
-              <option value={PrizeStatus.DELIVERED}>Delivered</option>
+              <option value="PENDING">Pending</option>
+              <option value="CLAIMED">Claimed</option>
+              <option value="SHIPPED">Shipped</option>
             </select>
           </div>
         </div>
+        {loading && (
+          <div className="mt-4 flex items-center justify-center py-4">
+            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+            <span className="ml-2 text-gray-600">Loading winners...</span>
+          </div>
+        )}
       </Card>
 
       {/* Winners Table */}
@@ -363,25 +358,25 @@ export const Winners: React.FC = () => {
                     </div>
                     <div className="flex-1 pt-1">
                       <p className="text-gray-700 leading-relaxed mb-3">
-                        Are you sure you want to change the status for <strong>{selectedWinner.participant.name}</strong> from{' '}
+                        Are you sure you want to change the status for <strong>{selectedWinner.participant?.name}</strong> from{' '}
                         <span className={`font-semibold ${
-                          selectedWinner.prizeStatus === PrizeStatus.PENDING ? 'text-yellow-600' : 'text-green-600'
+                          selectedWinner.prize_status === 'PENDING' ? 'text-yellow-600' : 'text-green-600'
                         }`}>
-                          {selectedWinner.prizeStatus}
+                          {selectedWinner.prize_status}
                         </span>{' '}
                         to{' '}
                         <span className={`font-semibold ${
-                          newStatus === PrizeStatus.PENDING ? 'text-yellow-600' : 'text-green-600'
+                          newStatus === 'PENDING' ? 'text-yellow-600' : 'text-green-600'
                         }`}>
                           {newStatus}
                         </span>?
                       </p>
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <p className="text-sm text-gray-600">
-                          <strong>Prize:</strong> {selectedWinner.prize.name}
+                          <strong>Prize:</strong> {selectedWinner.prize?.prize_name || 'N/A'}
                         </p>
                         <p className="text-sm text-gray-600">
-                          <strong>Value:</strong> ₹{selectedWinner.prize.value.toLocaleString()}
+                          <strong>Value:</strong> {selectedWinner.prize?.value ? `₹${selectedWinner.prize.value.toLocaleString()}` : 'N/A'}
                         </p>
                       </div>
                     </div>

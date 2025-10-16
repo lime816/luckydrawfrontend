@@ -12,6 +12,8 @@ export interface Admin {
   two_factor: boolean;
   created_at: string;
   last_login?: string | null;
+  is_super_admin?: boolean; // Flag to identify Super Admin from Supabase Auth
+  supabase_user_id?: string | null; // Link to Supabase Auth user
 }
 
 export interface PagePermissions {
@@ -109,15 +111,37 @@ export class AdminService {
     return data;
   }
 
-  // Get all admins
-  static async getAllAdmins(): Promise<Admin[]> {
-    const { data, error } = await supabase
+  // Get all admins (excludes Super Admin for non-super users)
+  static async getAllAdmins(includeSuperAdmin: boolean = false): Promise<Admin[]> {
+    let query = supabase
       .from('admins')
       .select('*')
       .order('created_at', { ascending: false });
 
+    // Filter out Super Admin unless explicitly requested
+    if (!includeSuperAdmin) {
+      query = query.eq('is_super_admin', false);
+    }
+
+    const { data, error } = await query;
+
     if (error) throw error;
     return data || [];
+  }
+
+  // Get only Super Admin (for Super Admin dashboard)
+  static async getSuperAdmin(): Promise<Admin | null> {
+    const { data, error } = await supabase
+      .from('admins')
+      .select('*')
+      .eq('is_super_admin', true)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw error;
+    }
+    return data;
   }
 
   // Log admin activity
@@ -200,12 +224,20 @@ export class AdminService {
     if (error) throw error;
   }
 
-  // Get admin role statistics
-  static async getAdminRoleStats() {
+  // Get admin role statistics (excludes Super Admin from counts)
+  static async getAdminRoleStats(includeSuperAdmin: boolean = false) {
+    const filters = includeSuperAdmin ? {} : { is_super_admin: false };
+    
     const [superAdmins, admins, moderators] = await Promise.all([
-      supabase.from('admins').select('admin_id', { count: 'exact', head: true }).eq('role', 'SUPERADMIN'),
-      supabase.from('admins').select('admin_id', { count: 'exact', head: true }).eq('role', 'ADMIN'),
-      supabase.from('admins').select('admin_id', { count: 'exact', head: true }).eq('role', 'MODERATOR'),
+      supabase.from('admins').select('admin_id', { count: 'exact', head: true })
+        .eq('role', 'SUPERADMIN')
+        .match(filters),
+      supabase.from('admins').select('admin_id', { count: 'exact', head: true })
+        .eq('role', 'ADMIN')
+        .match(filters),
+      supabase.from('admins').select('admin_id', { count: 'exact', head: true })
+        .eq('role', 'MODERATOR')
+        .match(filters),
     ]);
 
     return {
@@ -274,12 +306,40 @@ export class AdminService {
     if (!admin) return false;
 
     // Super admins have all permissions
-    if (admin.role === 'SUPERADMIN') return true;
+    if (admin.role === 'SUPERADMIN' || admin.is_super_admin) return true;
 
     const permissions = admin.permissions || {};
     const pagePermissions = permissions[page] || [];
 
     // Check if the required permission is in the array
     return pagePermissions.includes(requiredLevel);
+  }
+
+  // Check if user is Super Admin (from Supabase Auth)
+  static async isSuperAdmin(adminId: number): Promise<boolean> {
+    const admin = await this.getAdminById(adminId);
+    return admin?.is_super_admin === true;
+  }
+
+  // Sync Super Admin from Supabase Auth to admins table
+  static async syncSuperAdminFromAuth(supabaseUserId: string, email: string, name: string): Promise<Admin> {
+    const { data, error } = await supabase
+      .from('admins')
+      .upsert({
+        supabase_user_id: supabaseUserId,
+        email,
+        name,
+        password_hash: 'supabase_auth', // Placeholder
+        role: 'SUPERADMIN',
+        is_super_admin: true,
+        last_login: new Date().toISOString(),
+      }, {
+        onConflict: 'supabase_user_id',
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 }

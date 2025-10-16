@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { DatabaseService } from '../../services/database';
 import { AuthService } from '../../services/authService';
 import toast from 'react-hot-toast';
+import { NotificationCenter } from '../NotificationCenter';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -239,57 +240,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         {/* Right Section */}
         <div className="flex items-center gap-2 sm:gap-4 ml-auto">
           {/* Notifications */}
-          <div className="relative z-30">
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
-
-            {showNotifications && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setShowNotifications(false)}
-                />
-                <div className="fixed sm:absolute top-16 sm:top-auto right-2 sm:right-0 mt-0 sm:mt-2 w-[calc(100vw-1rem)] sm:w-80 max-w-md bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
-                  <div className="p-4 border-b border-gray-200">
-                    <h3 className="font-semibold text-gray-900">Notifications</h3>
-                  </div>
-                  {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-gray-500">
-                      No notifications
-                    </div>
-                  ) : (
-                    <div>
-                      {notifications.slice(0, 5).map((notification) => (
-                        <div
-                          key={notification.id}
-                          onClick={() => markAsRead(notification.id)}
-                          className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                            !notification.read ? 'bg-blue-50' : ''
-                          }`}
-                        >
-                          <h4 className="font-medium text-sm text-gray-900 break-words">
-                            {notification.title}
-                          </h4>
-                          <p className="text-xs text-gray-600 mt-1 break-words">
-                            {notification.message}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
+          <NotificationCenter userId={user?.id ? Number(user.id) : undefined} />
 
           {/* User Menu */}
           <div className="relative">

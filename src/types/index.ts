@@ -58,6 +58,8 @@ export interface Contest {
   updatedAt: string;
   qrCodeUrl?: string; // URL for QR code participation
   isActive?: boolean; // Whether the contest is active/enabled
+  approvalStatus?: ApprovalStatus; // Approval status for non-superadmin contests
+  rejectionReason?: string; // Reason if rejected
 }
 
 export enum ContestStatus {
@@ -66,6 +68,12 @@ export enum ContestStatus {
   ONGOING = 'ONGOING',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
+}
+
+export enum ApprovalStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
 }
 
 export enum ParticipationMethod {

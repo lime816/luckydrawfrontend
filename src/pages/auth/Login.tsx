@@ -34,7 +34,11 @@ export const Login: React.FC = () => {
       // Store user in auth store
       login(authResponse.user, authResponse.token);
 
-      // Show success message with role and source information
+      // Store user info for welcome modal
+      sessionStorage.setItem('showWelcomeModal', 'true');
+      sessionStorage.setItem('welcomeUsername', authResponse.user.name);
+
+      // Log authentication source for debugging
       const roleLabel = authResponse.user.role === UserRole.SUPER_ADMIN 
         ? 'Super Admin' 
         : authResponse.user.role === UserRole.ADMIN 
@@ -45,12 +49,6 @@ export const Login: React.FC = () => {
         ? 'Authentication' 
         : 'Database';
       
-      toast.success(`Welcome back, ${authResponse.user.name}! (${roleLabel})`, {
-        icon: authResponse.source === 'supabase_auth' ? '👑' : '🎉',
-        duration: 3000,
-      });
-
-      // Log authentication source for debugging
       console.log(`✅ Authenticated via ${sourceLabel} as ${roleLabel}`);
 
       // Redirect based on role and source

@@ -1,12 +1,12 @@
 // API service for communicating with the Railway deployed backend webhook server
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 
-if (!BACKEND_URL) {
-  throw new Error('REACT_APP_BACKEND_URL environment variable is required for Railway backend connection');
+if (!process.env.REACT_APP_BACKEND_URL) {
+  console.warn('⚠️ REACT_APP_BACKEND_URL not set, using default:', BACKEND_URL);
+} else {
+  console.log('✅ Railway Backend URL:', BACKEND_URL);
 }
-
-console.log(' Railway Backend URL:', BACKEND_URL);
 
 export interface FlowTrigger {
   id: string

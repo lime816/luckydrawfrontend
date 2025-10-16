@@ -17,6 +17,7 @@ import {
 import { formatNumber, formatDate } from '../utils/helpers';
 import { Contest, ContestStatus } from '../types';
 import { DatabaseService } from '../services/database';
+import { useAuthStore } from '../store/authStore';
 
 ChartJS.register(
   CategoryScale,
@@ -39,6 +40,7 @@ interface DashboardStats {
 }
 
 export const Dashboard: React.FC = () => {
+  const { user } = useAuthStore();
   const [stats, setStats] = useState<DashboardStats>({
     totalContests: 0,
     activeContests: 0,

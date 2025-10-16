@@ -5,12 +5,12 @@ import type { MessageLibraryEntry, TriggerConfiguration } from '../types'
 
 // Mock Firebase configuration
 const FIREBASE_CONFIG = {
-  apiKey: process.env.VITE_FIREBASE_API_KEY || 'your-api-key',
-  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || 'your-project.firebaseapp.com',
-  projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'your-project-id',
-  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || 'your-project.appspot.com',
-  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '123456789',
-  appId: process.env.VITE_FIREBASE_APP_ID || 'your-app-id'
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || 'your-api-key',
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || 'your-project.firebaseapp.com',
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || 'your-project-id',
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || 'your-project.appspot.com',
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || '123456789',
+  appId: process.env.REACT_APP_FIREBASE_APP_ID || 'your-app-id'
 }
 
 export class FirebaseService {
@@ -232,12 +232,12 @@ To use real Firebase/Firestore instead of localStorage:
    npm install firebase
 
 2. Add environment variables to .env:
-   VITE_FIREBASE_API_KEY=your-api-key
-   VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=your-project-id
-   VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-   VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
-   VITE_FIREBASE_APP_ID=your-app-id
+   REACT_APP_FIREBASE_API_KEY=your-api-key
+   REACT_APP_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+   REACT_APP_FIREBASE_PROJECT_ID=your-project-id
+   REACT_APP_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+   REACT_APP_FIREBASE_MESSAGING_SENDER_ID=123456789
+   REACT_APP_FIREBASE_APP_ID=your-app-id
 
 3. Uncomment the Firebase imports and initialization code above
 

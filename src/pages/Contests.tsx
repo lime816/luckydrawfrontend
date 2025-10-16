@@ -16,6 +16,9 @@ import { ContestDetailsModal } from '../components/contests/ContestDetailsModal'
 import QRCode from 'qrcode';
 import { supabase } from '../lib/supabase-db';
 import { useLocation } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
+import toast from 'react-hot-toast';
+import { CheckCircle, XCircle } from 'lucide-react';
 
 // Function to generate QR code and upload to Supabase Storage
 const generateAndUploadQRCode = async (contestId: number, contestName: string): Promise<string> => {
@@ -68,6 +71,7 @@ const generateAndUploadQRCode = async (contestId: number, contestName: string): 
 
 export const Contests: React.FC = () => {
   const location = useLocation();
+  const { user } = useAuthStore();
   const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -227,9 +231,34 @@ export const Contests: React.FC = () => {
       setError(null);
       const contestData = await DatabaseService.getAllContests();
       
+      // Check user role for filtering
+      const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+      
+      console.log('Current user:', { id: user?.id, role: user?.role });
+      console.log('Total contests from DB:', contestData.length);
+      
+      // Filter contests based on approval status
+      const filteredContestData = isSuperAdmin 
+        ? contestData // Superadmin sees all contests
+        : contestData.filter((c: any) => {
+            const isApproved = c.approval_status === 'APPROVED';
+            const isOwnContest = c.created_by === Number(user?.id);
+            console.log(`Contest ${c.contest_id} (${c.name}):`, {
+              approval_status: c.approval_status,
+              created_by: c.created_by,
+              current_user_id: Number(user?.id),
+              isApproved,
+              isOwnContest,
+              willShow: isApproved || isOwnContest
+            });
+            return isApproved || isOwnContest;
+          });
+      
+      console.log('Filtered contests:', filteredContestData.length);
+      
       // Convert Supabase format to frontend format and load prizes
       const formattedContests: Contest[] = await Promise.all(
-        contestData.map(async (contest) => {
+        filteredContestData.map(async (contest: any) => {
           // Load prizes for this contest using our new service
           const contestPrizes = await DatabaseService.getPrizesByContest(contest.contest_id);
           
@@ -272,6 +301,8 @@ export const Contests: React.FC = () => {
             updatedAt: contest.created_at,
             qrCodeUrl: contest.qr_code_url || undefined,
             isActive: finalIsActive,
+            approvalStatus: contest.approval_status || 'APPROVED',
+            rejectionReason: contest.rejection_reason,
           };
         })
       );
@@ -314,6 +345,9 @@ export const Contests: React.FC = () => {
         return;
       }
       
+      // Check if user is superadmin
+      const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+      
       // Use times directly as entered
       const startTime = contestData.startTime;
       const endTime = contestData.endTime;
@@ -334,6 +368,7 @@ export const Contests: React.FC = () => {
         end_time: endTime,
         entry_rules: contestData.entryRules || null,
         status: autoStatus, // Automatically set based on dates
+        approval_status: isSuperAdmin ? 'APPROVED' : 'PENDING', // Non-superadmin creates pending contests
       };
       
       // Don't include is_active in payload until column is added to database
@@ -377,6 +412,13 @@ export const Contests: React.FC = () => {
       await loadContests();
       setShowCreateModal(false);
       setError(null);
+      
+      if (isSuperAdmin) {
+        toast.success('Contest created successfully!');
+      } else {
+        toast.success('Contest submitted for approval! It will be reviewed by a superadmin.');
+      }
+      
     } catch (err: any) {
       console.error('Error creating contest:', err);
       console.error('Error details:', err.message, err.details, err.hint);
@@ -501,6 +543,20 @@ export const Contests: React.FC = () => {
 
   const columns = [
     {
+      key: 'serial',
+      header: 'S.No',
+      render: (contest: Contest, index: number) => (
+        <span className="font-medium text-gray-700">{index + 1}</span>
+      ),
+    },
+    {
+      key: 'id',
+      header: 'Contest ID',
+      render: (contest: Contest) => (
+        <span className="font-mono text-sm text-gray-600">#{contest.id}</span>
+      ),
+    },
+    {
       key: 'name',
       header: 'Contest Name',
       render: (contest: Contest) => (
@@ -514,6 +570,22 @@ export const Contests: React.FC = () => {
       key: 'status',
       header: 'Status',
       render: (contest: Contest) => getStatusBadge(contest.status),
+    },
+    {
+      key: 'approval',
+      header: 'Approval',
+      render: (contest: Contest) => {
+        if (!contest.approvalStatus || contest.approvalStatus === 'APPROVED') {
+          return <Badge variant="success" size="sm">Approved</Badge>;
+        }
+        if (contest.approvalStatus === 'PENDING') {
+          return <Badge variant="warning" size="sm">Pending</Badge>;
+        }
+        if (contest.approvalStatus === 'REJECTED') {
+          return <Badge variant="danger" size="sm">Rejected</Badge>;
+        }
+        return null;
+      },
     },
     {
       key: 'active',
@@ -590,51 +662,76 @@ export const Contests: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      render: (contest: Contest) => (
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => handleViewQR(contest)}
-            className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-            title="View QR Code"
-          >
-            <QrCode className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => handleView(contest)}
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            title="View"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => handleEdit(contest)}
-            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-            title="Edit"
-          >
-            <Edit className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => handleToggleActive(contest)}
-            disabled={contest.status === ContestStatus.COMPLETED}
-            className={`p-2 rounded-lg transition-colors ${
-              contest.status === ContestStatus.COMPLETED
-                ? 'text-gray-400 cursor-not-allowed opacity-50'
-                : contest.isActive 
-                  ? 'text-green-600 hover:bg-green-50' 
-                  : 'text-gray-600 hover:bg-gray-50'
-            }`}
-            title={
-              contest.status === ContestStatus.COMPLETED 
-                ? 'Cannot toggle completed contest' 
-                : contest.isActive 
-                  ? 'Disable Contest' 
-                  : 'Enable Contest'
-            }
-          >
-            <Power className="w-4 h-4" />
-          </button>
-        </div>
-      ),
+      render: (contest: Contest) => {
+        const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+        const isPending = contest.approvalStatus === 'PENDING';
+        
+        return (
+          <div className="flex items-center gap-2">
+            {/* Approve/Reject buttons for superadmin on pending contests */}
+            {isSuperAdmin && isPending && (
+              <>
+                <button
+                  onClick={() => handleApproveContest(contest)}
+                  className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                  title="Approve Contest"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleRejectContest(contest)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Reject Contest"
+                >
+                  <XCircle className="w-4 h-4" />
+                </button>
+              </>
+            )}
+            
+            <button
+              onClick={() => handleViewQR(contest)}
+              className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+              title="View QR Code"
+            >
+              <QrCode className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => handleView(contest)}
+              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              title="View"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => handleEdit(contest)}
+              className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+              title="Edit"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => handleToggleActive(contest)}
+              disabled={contest.status === ContestStatus.COMPLETED}
+              className={`p-2 rounded-lg transition-colors ${
+                contest.status === ContestStatus.COMPLETED
+                  ? 'text-gray-400 cursor-not-allowed opacity-50'
+                  : contest.isActive 
+                    ? 'text-green-600 hover:bg-green-50' 
+                    : 'text-gray-600 hover:bg-gray-50'
+              }`}
+              title={
+                contest.status === ContestStatus.COMPLETED 
+                  ? 'Cannot toggle completed contest' 
+                  : contest.isActive 
+                    ? 'Disable Contest' 
+                    : 'Enable Contest'
+              }
+            >
+              <Power className="w-4 h-4" />
+            </button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -656,6 +753,54 @@ export const Contests: React.FC = () => {
   const confirmDelete = async () => {
     if (contestToDelete) {
       await handleDeleteContest(contestToDelete.id);
+    }
+  };
+
+  const handleApproveContest = async (contest: Contest) => {
+    try {
+      // Update directly in Supabase with snake_case fields
+      const { error } = await supabase
+        .from('contests')
+        .update({
+          approval_status: 'APPROVED',
+          reviewed_by: Number(user?.id),
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq('contest_id', parseInt(contest.id));
+      
+      if (error) throw error;
+      
+      toast.success(`Contest "${contest.name}" approved!`);
+      await loadContests();
+    } catch (error) {
+      console.error('Error approving contest:', error);
+      toast.error('Failed to approve contest');
+    }
+  };
+
+  const handleRejectContest = async (contest: Contest) => {
+    const reason = prompt('Please provide a reason for rejection:');
+    if (!reason) return;
+    
+    try {
+      // Update directly in Supabase with snake_case fields
+      const { error } = await supabase
+        .from('contests')
+        .update({
+          approval_status: 'REJECTED',
+          reviewed_by: Number(user?.id),
+          reviewed_at: new Date().toISOString(),
+          rejection_reason: reason,
+        })
+        .eq('contest_id', parseInt(contest.id));
+      
+      if (error) throw error;
+      
+      toast.success(`Contest "${contest.name}" rejected`);
+      await loadContests();
+    } catch (error) {
+      console.error('Error rejecting contest:', error);
+      toast.error('Failed to reject contest');
     }
   };
 

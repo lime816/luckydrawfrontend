@@ -92,10 +92,12 @@ export const AdminManagement: React.FC = () => {
     try {
       setLoading(true);
       
+      // Note: getAllAdmins() automatically excludes Super Admin from Supabase Auth
+      // Super Admin is only visible to themselves and is managed separately
       const [adminsData, activityData, roleStats] = await Promise.all([
-        AdminService.getAllAdmins(),
+        AdminService.getAllAdmins(), // Excludes Super Admin by default
         AdminService.getAdminActivityLogs(),
-        AdminService.getAdminRoleStats(),
+        AdminService.getAdminRoleStats(), // Excludes Super Admin from counts
       ]);
 
       // Enhance admins with additional stats
