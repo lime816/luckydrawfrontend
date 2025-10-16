@@ -7,6 +7,7 @@ import { useFlowStore } from '../state/store'
 import { SortableItem } from './SortableItem'
 import PropertyEditorInline from './PropertyEditorInline'
 import ConfirmDialog from './ConfirmDialog'
+import DeleteConfirmModal from './DeleteConfirmModal'
 import type { AnyElement } from '../types'
 
 export default function Canvas() {
@@ -15,6 +16,8 @@ export default function Canvas() {
   const [selectedElement, setSelectedElement] = useState<AnyElement | null>(null)
   const [deletingElement, setDeletingElement] = useState<AnyElement | null>(null)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [elementToDelete, setElementToDelete] = useState<AnyElement | null>(null)
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -28,9 +31,26 @@ export default function Canvas() {
 
   const handleDelete = (el: AnyElement) => {
     if (!screen) return
+    setElementToDelete(el)
+    setShowDeleteModal(true)
+  }
+
+  const confirmDelete = () => {
+    if (!screen || !elementToDelete) return
     const { removeElement } = useFlowStore.getState()
-    removeElement(screen.id, el.id)
+    removeElement(screen.id, elementToDelete.id)
     setDeletingElement(null)
+    setElementToDelete(null)
+  }
+
+  const getDeleteMessage = (el: AnyElement) => {
+    const componentName = 'label' in el && el.label 
+      ? `"${el.label}"` 
+      : 'text' in el && el.text 
+        ? `"${el.text.substring(0, 30)}${el.text.length > 30 ? '...' : ''}"` 
+        : el.type
+    
+    return `Are you sure you want to delete this ${el.type} component${componentName !== el.type ? ` (${componentName})` : ''}?\n\nThis action cannot be undone.`
   }
 
   if (!screen) {
@@ -42,12 +62,13 @@ export default function Canvas() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
-    >
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
+      >
       {/* Screen Header */}
       <div className="bg-gradient-to-r from-primary-50 to-primary-100/50 px-6 py-4 border-b border-primary-200">
         <div className="flex items-center gap-3">
@@ -157,6 +178,19 @@ export default function Canvas() {
         />
       )}
     </motion.div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete Component"
+        message={elementToDelete ? getDeleteMessage(elementToDelete) : ''}
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          setShowDeleteModal(false)
+          setElementToDelete(null)
+        }}
+      />
+    </>
   )
 }
 
@@ -404,6 +438,51 @@ function Preview({ el, onClick, isSelected }: { el: any; onClick: () => void; is
           </div>
         </div>
       )
+    case 'PhotoPicker':
+      return (
+        <div onClick={onClick} className={baseClass}>
+          <label className="text-sm font-medium text-gray-700 block mb-2">{el.label || 'Photo Picker'}</label>
+          {el.description && <p className="text-xs text-gray-500 mb-2">{el.description}</p>}
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50">
+            <div className="w-10 h-10 mx-auto mb-2 bg-blue-100 rounded-full flex items-center justify-center">
+              <span className="text-xl">📷</span>
+            </div>
+            <p className="text-xs text-gray-600">Upload Photos</p>
+            <p className="text-xs text-gray-400 mt-1">
+              {el.photoSource === 'camera' ? 'Camera' : el.photoSource === 'gallery' ? 'Gallery' : 'Camera/Gallery'}
+            </p>
+            {(el.minUploadedPhotos || el.maxUploadedPhotos) && (
+              <p className="text-xs text-gray-400 mt-1">
+                {el.minUploadedPhotos || 0}-{el.maxUploadedPhotos || 30} photos
+              </p>
+            )}
+          </div>
+        </div>
+      )
+    case 'DocumentPicker':
+      return (
+        <div onClick={onClick} className={baseClass}>
+          <label className="text-sm font-medium text-gray-700 block mb-2">{el.label || 'Document Picker'}</label>
+          {el.description && <p className="text-xs text-gray-500 mb-2">{el.description}</p>}
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50">
+            <div className="w-10 h-10 mx-auto mb-2 bg-green-100 rounded-full flex items-center justify-center">
+              <span className="text-xl">📄</span>
+            </div>
+            <p className="text-xs text-gray-600">Upload Documents</p>
+            {el.allowedMimeTypes && el.allowedMimeTypes.length > 0 && (
+              <p className="text-xs text-gray-400 mt-1">
+                {el.allowedMimeTypes.slice(0, 2).join(', ')}
+                {el.allowedMimeTypes.length > 2 && '...'}
+              </p>
+            )}
+            {(el.minUploadedDocuments || el.maxUploadedDocuments) && (
+              <p className="text-xs text-gray-400 mt-1">
+                {el.minUploadedDocuments || 0}-{el.maxUploadedDocuments || 30} docs
+              </p>
+            )}
+          </div>
+        </div>
+      )
     case 'NavigationList':
       return (
         <div onClick={onClick} className={baseClass}>
@@ -438,3 +517,4 @@ function Preview({ el, onClick, isSelected }: { el: any; onClick: () => void; is
       return null
   }
 }
+

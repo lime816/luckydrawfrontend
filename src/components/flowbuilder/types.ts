@@ -5,7 +5,7 @@ export type ElementType =
   | 'CheckboxGroup' | 'RadioButtonsGroup' | 'ChipsSelector'
   | 'Dropdown' | 'OptIn' | 'EmbeddedLink'
   | 'DatePicker' | 'CalendarPicker'
-  | 'Image' | 'ImageCarousel'
+  | 'Image' | 'ImageCarousel' | 'PhotoPicker' | 'DocumentPicker'
   | 'NavigationList'
   | 'Footer'
 
@@ -101,6 +101,8 @@ export type TextAreaEl = BaseElement & {
   label: string
   name: string
   required?: boolean
+  maxLength?: number
+  helperText?: string
 }
 
 export type DropdownEl = BaseElement & {
@@ -235,13 +237,41 @@ export type ImageCarouselEl = BaseElement & {
   scaleType?: 'cover' | 'contain'
 }
 
+export type PhotoPickerEl = BaseElement & {
+  type: 'PhotoPicker'
+  name: string
+  label: string
+  description?: string
+  photoSource?: 'camera_gallery' | 'camera' | 'gallery'
+  maxFileSizeKb?: number
+  minUploadedPhotos?: number
+  maxUploadedPhotos?: number
+  enabled?: boolean
+  visible?: boolean
+  errorMessage?: string | Record<string, string>
+}
+
+export type DocumentPickerEl = BaseElement & {
+  type: 'DocumentPicker'
+  name: string
+  label: string
+  description?: string
+  maxFileSizeKb?: number
+  minUploadedDocuments?: number
+  maxUploadedDocuments?: number
+  allowedMimeTypes?: string[]
+  enabled?: boolean
+  visible?: boolean
+  errorMessage?: string | Record<string, string>
+}
+
 export type AnyElement = 
   | TextHeadingEl | TextSubheadingEl | TextBodyEl | TextCaptionEl | RichTextEl
   | TextInputEl | EmailInputEl | PasswordInputEl | PhoneInputEl | TextAreaEl
   | CheckboxGroupEl | RadioButtonsGroupEl | ChipsSelectorEl
   | DropdownEl | OptInEl | EmbeddedLinkEl
   | DatePickerEl | CalendarPickerEl
-  | ImageEl | ImageCarouselEl | NavigationListEl
+  | ImageEl | ImageCarouselEl | PhotoPickerEl | DocumentPickerEl | NavigationListEl
   | FooterEl
 
 export type Screen = {

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { 
   Type, CheckCircle, MessageSquare, ChevronDown, ArrowRight, Plus, Edit3, Mail, Lock, Phone,
   FileText, Hash, AlignLeft, Calendar, CalendarDays, Image, Link, 
-  CheckSquare, Navigation, Layers, Palette as PaletteIcon
+  CheckSquare, Navigation, Layers, Palette as PaletteIcon, Camera, Upload
 } from 'lucide-react'
 import { useFlowStore } from '../state/store'
 import type { ElementType } from '../types'
@@ -36,7 +36,9 @@ const types: { key: ElementType; label: string; icon: React.ReactNode; descripti
   
   // Media Components
   { key: 'Image', label: 'Image', icon: <Image className="w-4 h-4" />, description: 'Display image', category: 'Media' },
-  // { key: 'ImageCarousel', label: 'Image Carousel', icon: <Image className="w-4 h-4" />, description: 'Image slideshow', category: 'Media' },
+  { key: 'ImageCarousel', label: 'Image Carousel', icon: <Image className="w-4 h-4" />, description: 'Image slideshow', category: 'Media' },
+  { key: 'PhotoPicker', label: 'Photo Picker', icon: <Camera className="w-4 h-4" />, description: 'Upload photos', category: 'Media' },
+  { key: 'DocumentPicker', label: 'Document Picker', icon: <Upload className="w-4 h-4" />, description: 'Upload documents', category: 'Media' },
   
   // Navigation Components
   { key: 'EmbeddedLink', label: 'Embedded Link', icon: <Link className="w-4 h-4" />, description: 'Clickable link', category: 'Navigation' },

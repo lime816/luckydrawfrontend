@@ -77,10 +77,14 @@ function buildScreen(s: Screen, si: number, all: Screen[]) {
   
   // If there are form elements, wrap them in a Form component
   if (formElements.length > 0) {
+    // CRITICAL: Footer MUST be the last element in Form children
+    const footerElements = formElements.filter(el => el.type === 'Footer')
+    const otherFormElements = formElements.filter(el => el.type !== 'Footer')
+    
     children.push({
       type: 'Form',
       name: 'flow_path',
-      children: formElements
+      children: [...otherFormElements, ...footerElements]  // Footer at the end
     })
   }
   
@@ -93,28 +97,18 @@ function buildScreen(s: Screen, si: number, all: Screen[]) {
     }
   }
 
-  // Check if this is a terminal screen
-  const footer = s.elements.find(e => e.type === 'Footer') as any
-  if (footer && footer.action === 'complete') {
-    screen.terminal = true
-    screen.success = true
-    screen.data = {}
-    console.log(`   ✓ Terminal screen: ${s.id}`)
-  }
-
-  // Add data schema from previous screens for navigation
-  if (si > 0 && (!footer || footer.action !== 'complete')) {
+  // Add data schema from previous screens (for both navigate and complete actions)
+  if (si > 0) {
     const dataSchema: Record<string, any> = {}
     
-    // Collect all form fields from previous screens
+    // Collect all form fields from previous screens using extractFormFields
     for (let i = 0; i < si; i++) {
       const prevScreen = all[i]
-      prevScreen.elements.forEach(el => {
-        if ('name' in el && el.name) {
-          dataSchema[el.name] = {
-            type: 'string',
-            __example__: getExampleValue(el.type)
-          }
+      const prevScreenFields = extractFormFields(prevScreen)
+      prevScreenFields.forEach(field => {
+        dataSchema[field.name] = {
+          type: 'string',
+          __example__: getExampleValue(field.type)
         }
       })
     }
@@ -122,6 +116,14 @@ function buildScreen(s: Screen, si: number, all: Screen[]) {
     if (Object.keys(dataSchema).length > 0) {
       screen.data = dataSchema
     }
+  }
+
+  // Check if this is a terminal screen
+  const footer = s.elements.find(e => e.type === 'Footer') as any
+  if (footer && footer.action === 'complete') {
+    screen.terminal = true
+    screen.success = true
+    console.log(`   ✓ Terminal screen: ${s.id}`)
   }
 
   console.log(`   ✅ Screen built:`, screen.id)
@@ -146,6 +148,10 @@ function getExampleValue(elementType: string): string {
     case 'DatePicker':
     case 'CalendarPicker':
       return '2024-01-01'
+    case 'PhotoPicker':
+      return '["media_id_1", "media_id_2"]'
+    case 'DocumentPicker':
+      return '["media_id_1"]'
     default:
       return 'Sample value'
   }
@@ -177,12 +183,12 @@ function mapElement(el: AnyElement, si: number, ei: number, currentScreen?: Scre
       return { type: 'RichText', text: el.text, ...(el.visible !== undefined && { visible: el.visible }) }
     case 'TextInput': {
       const result: any = { 
-        type: 'TextInput', 
+        type: 'TextInput',
+        'input-type': el.inputType || 'text',  // Default to 'text' if not specified
         label: el.label, 
         name: el.name
       }
       if (el.required !== undefined) result.required = el.required
-      if (el.inputType) result['input-type'] = el.inputType
       if (el.pattern) result.pattern = el.pattern
       if (el.helperText) result['helper-text'] = el.helperText
       if (el.minChars) result['min-chars'] = el.minChars
@@ -271,6 +277,8 @@ function mapElement(el: AnyElement, si: number, ei: number, currentScreen?: Scre
         name: el.name
       }
       if (el.required !== undefined) result.required = el.required
+      if (el.maxLength) result['max-length'] = el.maxLength
+      if (el.helperText) result['helper-text'] = el.helperText
       return result
     }
     case 'Dropdown': {
@@ -345,6 +353,38 @@ function mapElement(el: AnyElement, si: number, ei: number, currentScreen?: Scre
       if (el.scaleType) result['scale-type'] = el.scaleType
       return result
     }
+    case 'PhotoPicker': {
+      const result: any = { 
+        type: 'PhotoPicker', 
+        name: el.name,
+        label: el.label,
+        'photo-source': el.photoSource || 'camera_gallery',
+        'min-uploaded-photos': el.minUploadedPhotos !== undefined ? el.minUploadedPhotos : 0,
+        'max-uploaded-photos': el.maxUploadedPhotos || 10,
+        'max-file-size-kb': el.maxFileSizeKb || 10240
+      }
+      if (el.description) result.description = el.description
+      if (el.enabled !== undefined) result.enabled = el.enabled
+      if (el.visible !== undefined) result.visible = el.visible
+      if (el.errorMessage) result['error-message'] = el.errorMessage
+      return result
+    }
+    case 'DocumentPicker': {
+      const result: any = { 
+        type: 'DocumentPicker', 
+        name: el.name,
+        label: el.label,
+        'min-uploaded-documents': el.minUploadedDocuments !== undefined ? el.minUploadedDocuments : 0,
+        'max-uploaded-documents': el.maxUploadedDocuments || 10,
+        'max-file-size-kb': el.maxFileSizeKb || 10240
+      }
+      if (el.description) result.description = el.description
+      if (el.allowedMimeTypes && el.allowedMimeTypes.length > 0) result['allowed-mime-types'] = el.allowedMimeTypes
+      if (el.enabled !== undefined) result.enabled = el.enabled
+      if (el.visible !== undefined) result.visible = el.visible
+      if (el.errorMessage) result['error-message'] = el.errorMessage
+      return result
+    }
     case 'NavigationList': {
       const result: any = { 
         type: 'NavigationList', 
@@ -385,13 +425,11 @@ function mapElement(el: AnyElement, si: number, ei: number, currentScreen?: Scre
       if (el.action === 'navigate') {
         const payload: Record<string, string> = {}
         
-        // Collect form fields from current screen
+        // Collect form fields from current screen (including nested in Form components)
         if (currentScreen) {
-          const currentScreenFormFields = currentScreen.elements.filter((elem: any) => 'name' in elem && elem.name)
+          const currentScreenFormFields = extractFormFields(currentScreen)
           currentScreenFormFields.forEach((field: any) => {
-            if ('name' in field && field.name) {
-              payload[field.name] = `\${form.${field.name}}`
-            }
+            payload[field.name] = `\${form.${field.name}}`
           })
         }
         
@@ -406,23 +444,24 @@ function mapElement(el: AnyElement, si: number, ei: number, currentScreen?: Scre
       } else if (el.action === 'complete') {
         const payload: Record<string, string> = {}
         
-        // Collect form fields from current screen
+        // Collect form fields from current screen (including nested in Form components)
         if (currentScreen) {
-          const currentScreenFormFields = currentScreen.elements.filter((elem: any) => 'name' in elem && elem.name)
+          const currentScreenFormFields = extractFormFields(currentScreen)
           currentScreenFormFields.forEach((field: any) => {
-            if ('name' in field && field.name) {
-              payload[field.name] = `\${form.${field.name}}`
-            }
+            payload[field.name] = `\${form.${field.name}}`
           })
         }
         
-        // Collect data from previous screens
-        if (allScreens) {
+        // Collect data from ALL previous screens (including nested in Form components)
+        // Use ${data.field_name} for fields from previous screens
+        if (allScreens && si > 0) {
           for (let i = 0; i < si; i++) {
             const prevScreen = allScreens[i]
-            prevScreen.elements.forEach((elem: any) => {
-              if ('name' in elem && elem.name) {
-                payload[elem.name] = `\${data.${elem.name}}`
+            const prevScreenFields = extractFormFields(prevScreen)
+            prevScreenFields.forEach((field: any) => {
+              // Only add if not already in payload from current screen
+              if (!payload[field.name]) {
+                payload[field.name] = `\${data.${field.name}}`
               }
             })
           }
@@ -468,7 +507,31 @@ function isFormElement(element: any): boolean {
   const formElementTypes = [
     'TextInput', 'EmailInput', 'PasswordInput', 'PhoneInput', 'TextArea',
     'CheckboxGroup', 'RadioButtonsGroup', 'ChipsSelector', 'Dropdown', 'OptIn',
-    'DatePicker', 'CalendarPicker'
+    'DatePicker', 'CalendarPicker',
+    'PhotoPicker', 'DocumentPicker',  // Media upload components MUST be in Form
+    'Footer'  // Footer should be in Form when collecting form data
   ]
   return formElementTypes.includes(element.type)
+}
+
+// Helper function to extract all form fields from a screen (including nested in Form components)
+function extractFormFields(screen: Screen): any[] {
+  const fields: any[] = []
+  
+  screen.elements.forEach((elem: any) => {
+    // If it's a Form component, extract fields from its children
+    if (elem.type === 'Form' && elem.children && Array.isArray(elem.children)) {
+      elem.children.forEach((child: any) => {
+        if ('name' in child && child.name && child.type !== 'Footer') {
+          fields.push(child)
+        }
+      })
+    }
+    // If it's a regular field with a name
+    else if ('name' in elem && elem.name && elem.type !== 'Footer') {
+      fields.push(elem)
+    }
+  })
+  
+  return fields
 }

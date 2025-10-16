@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Layers, X, Menu } from 'lucide-react'
+import { Layers, X, Menu, Plus } from 'lucide-react'
 import Palette from '../components/Palette'
 import Canvas from '../components/Canvas'
 import ScreenSettings from '../components/ScreenSettings'
@@ -14,7 +14,7 @@ interface ScreenDesignerProps {
 }
 
 export default function ScreenDesigner({ flowName, setFlowName, customMessage, setCustomMessage }: ScreenDesignerProps) {
-  const { screens, selectedScreenId, selectScreen, removeScreen } = useFlowStore()
+  const { screens, selectedScreenId, selectScreen, removeScreen, addScreen } = useFlowStore()
   const [showMobilePalette, setShowMobilePalette] = useState(false)
   
   return (
@@ -85,7 +85,7 @@ export default function ScreenDesigner({ flowName, setFlowName, customMessage, s
                       >
                         <button
                           onClick={() => selectScreen(s.id)}
-                          className="flex-1 text-left pr-6"
+                          className="flex-1 text-left pr-8"
                         >
                           {s.id}
                         </button>
@@ -95,14 +95,27 @@ export default function ScreenDesigner({ flowName, setFlowName, customMessage, s
                               e.stopPropagation()
                               removeScreen(s.id)
                             }}
-                            className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500/20 rounded"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 p-1 hover:bg-red-500 hover:text-white text-red-400 rounded transition-all"
                             title="Delete screen"
                           >
-                            <X className="w-3 h-3 text-red-400" />
+                            <X className="w-4 h-4" />
                           </button>
                         )}
                       </motion.div>
                     ))}
+                    
+                    {/* Add Screen Button */}
+                    <motion.button
+                      onClick={addScreen}
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: screens.length * 0.05 }}
+                      className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-medium text-sm transition-all shadow-sm hover:shadow-md flex items-center gap-2"
+                      title="Add new screen"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Screen
+                    </motion.button>
                   </div>
                 </div>
 

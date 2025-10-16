@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect } from 'react'
-import { Download, Plus, Code2, MessageCircle, Send, QrCode, Globe, Library, Menu, Zap } from 'lucide-react'
+import { Download, Plus, Code2, MessageCircle, Send, QrCode, Globe, Library, Menu, Zap, Loader, Eye } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ScreenDesigner from './screens/ScreenDesigner'
 import JsonPreviewPanel from './components/JsonPreviewPanel'
 import WhatsAppPreview from './components/WhatsAppPreview'
 import FlowXPPanel from './components/FlowXPPanel'
+import FlowPreviewPane from './components/FlowPreviewPane'
 import QRFlowInitiator from './components/QRFlowInitiator'
 import WebhookSetup from './components/WebhookSetup'
 import MessageLibrary from './components/MessageLibrary'
@@ -33,6 +34,7 @@ export default function FlowBuilderApp() {
   const [allFlows, setAllFlows] = useState<any[]>([])
   const [isLoadingFlows, setIsLoadingFlows] = useState(false)
   const [selectedFlow, setSelectedFlow] = useState<any>(null)
+  const [showFlowPreview, setShowFlowPreview] = useState(false)
   const [customMessage, setCustomMessage] = useState('Please complete this form to continue with your lucky draw registration.')
   const [showFlowSelectionDialog, setShowFlowSelectionDialog] = useState(false)
   const [showQRCodePanel, setShowQRCodePanel] = useState(false)
@@ -125,11 +127,17 @@ export default function FlowBuilderApp() {
     setIsLoadingFlows(true)
     try {
       const service = new WhatsAppService()
-      const flows = await service.getAllFlows()
-      setAllFlows(flows)
-      return flows
+      const response = await service.getAllFlows()
+      
+      // WhatsApp API returns {data: [...]} format
+      const flowsArray = response?.data || response || []
+      console.log('Flows loaded:', flowsArray)
+      
+      setAllFlows(Array.isArray(flowsArray) ? flowsArray : [])
+      return flowsArray
     } catch (error: any) {
       showToast('error', 'Failed to Load Flows', error.message)
+      setAllFlows([])
       return []
     } finally {
       setIsLoadingFlows(false)
@@ -390,15 +398,131 @@ export default function FlowBuilderApp() {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Manage Flows Panel Content */}
-              <div className="p-6">
-                <h2 className="text-2xl font-bold mb-4">Manage Flows</h2>
-                <button
-                  onClick={() => setShowFlowsPanel(false)}
-                  className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-                >
-                  ✕
-                </button>
-                {/* Add flow management UI here */}
+              <div className="flex flex-col max-h-[80vh]">
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+                  <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
+                      <Download className="w-6 h-6 text-white" />
+                    </div>
+                    Manage Flows
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleGetAllFlows}
+                      disabled={isLoadingFlows}
+                      className="px-3 py-2 text-sm bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 text-white rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      {isLoadingFlows ? (
+                        <>
+                          <Loader className="w-4 h-4 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-4 h-4" />
+                          Refresh
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setShowFlowsPanel(false)}
+                      className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="p-6 overflow-y-auto">
+                  {isLoadingFlows ? (
+                    <div className="text-center py-12">
+                      <Loader className="w-12 h-12 text-primary-600 mx-auto mb-4 animate-spin" />
+                      <p className="text-gray-600">Loading flows from WhatsApp...</p>
+                    </div>
+                  ) : allFlows && allFlows.length > 0 ? (
+                    <div className="space-y-4">
+                      <p className="text-sm text-gray-600 mb-4">
+                        {allFlows.length} flow{allFlows.length !== 1 ? 's' : ''} available from WhatsApp Business
+                      </p>
+                      <div className="grid gap-4">
+                        {allFlows.map((flow: any) => (
+                          <div
+                            key={flow.id}
+                            className="bg-white border border-gray-200 rounded-lg p-4 hover:border-primary-300 hover:shadow-md transition-all"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-gray-900 mb-1">{flow.name}</h3>
+                                <p className="text-sm text-gray-600 mb-2">ID: {flow.id}</p>
+                                <div className="flex items-center gap-4 text-xs text-gray-500">
+                                  <span className={`px-2 py-1 rounded-full ${
+                                    flow.status === 'PUBLISHED' 
+                                      ? 'bg-green-100 text-green-700' 
+                                      : 'bg-yellow-100 text-yellow-700'
+                                  }`}>
+                                    {flow.status}
+                                  </span>
+                                  {flow.categories && flow.categories.length > 0 && (
+                                    <span>Categories: {flow.categories.join(', ')}</span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    setSelectedFlow(flow)
+                                    setShowFlowPreview(true)
+                                  }}
+                                  className="px-3 py-1.5 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors flex items-center gap-1"
+                                  title="Preview Flow"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                  Preview
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(flow.id)
+                                    showToast('success', 'Copied!', 'Flow ID copied to clipboard', 2000)
+                                  }}
+                                  className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                                >
+                                  Copy ID
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setActiveFlowId(flow.id)
+                                    setShowFlowsPanel(false)
+                                    showToast('success', 'Flow Selected', `${flow.name} is now active`, 3000)
+                                  }}
+                                  className="px-3 py-1.5 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+                                >
+                                  Set Active
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Download className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">No Flows Available</h3>
+                      <p className="text-gray-500 mb-4">
+                        Create flows in WhatsApp Business Manager or upload a flow JSON
+                      </p>
+                      <button
+                        onClick={() => {
+                          setShowFlowsPanel(false)
+                          setShowJsonPreview(true)
+                        }}
+                        className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+                      >
+                        Create Flow JSON
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -499,6 +623,39 @@ export default function FlowBuilderApp() {
           <MessageLibrary 
             onClose={() => setShowMessageLibrary(false)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Flow Preview Modal */}
+      <AnimatePresence>
+        {showFlowPreview && selectedFlow && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 overflow-y-auto"
+            onClick={() => {
+              setShowFlowPreview(false)
+              setSelectedFlow(null)
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-lg shadow-2xl max-w-6xl w-full my-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <FlowPreviewPane 
+                flowId={selectedFlow.id}
+                flowName={selectedFlow.name}
+                onClose={() => {
+                  setShowFlowPreview(false)
+                  setSelectedFlow(null)
+                }}
+              />
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 

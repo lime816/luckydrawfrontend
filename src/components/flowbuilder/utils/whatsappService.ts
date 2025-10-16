@@ -899,6 +899,169 @@ export class WhatsAppService {
     }
   }
 
+  async getFlowAsset(flowId: string) {
+    try {
+      console.log(`🔍 Fetching flow asset (JSON) for ${flowId}...`);
+      
+      // Method 1: Try to get assets directly
+      console.log('📡 Attempting Method 1: Direct asset fetch...');
+      let response = await fetch(`${this.baseUrl}/${flowId}/assets`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        console.warn('⚠️ Direct asset fetch failed, trying alternative method...');
+        
+        // Method 2: Try getting flow details with fields parameter
+        console.log('📡 Attempting Method 2: Flow details with fields...');
+        response = await fetch(`${this.baseUrl}/${flowId}?fields=id,name,status,categories,validation_errors,json_version,data_api_version,endpoint_uri,preview`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ Failed to fetch flow asset:', errorData);
+        
+        return {
+          version: '7.2',
+          screens: [],
+          _note: 'No flow assets found or insufficient permissions'
+        };
+      }
+
+      const result = await response.json();
+      console.log('📦 Flow data retrieved:', result);
+      
+      // Format 1: Direct asset data in 'data' array (from /assets endpoint)
+      if (result.data && Array.isArray(result.data) && result.data.length > 0) {
+        console.log('✅ Format 1: Found asset data in array');
+        const latestAsset = result.data[0];
+        
+        // Check if there's a download_url in the asset
+        if (latestAsset.download_url) {
+          console.log('🔗 Found download URL in asset, fetching JSON...');
+          try {
+            const jsonData = await this.fetchFlowJsonFromDownloadUrl(latestAsset.download_url);
+            if (jsonData && jsonData.screens) {
+              console.log('✅ Successfully fetched flow JSON from asset download URL');
+              return jsonData;
+            }
+          } catch (err) {
+            console.warn('⚠️ Failed to fetch from asset download URL:', err);
+          }
+        }
+        
+        if (typeof latestAsset.asset === 'string') {
+          try {
+            return JSON.parse(latestAsset.asset);
+          } catch (e) {
+            console.error('❌ Failed to parse asset string:', e);
+            return latestAsset;
+          }
+        }
+        
+        if (latestAsset.asset && typeof latestAsset.asset === 'object') {
+          return latestAsset.asset;
+        }
+        
+        return latestAsset;
+      }
+      
+      // Format 2: Check if it's a flow details response with download URL
+      if (result.preview?.download_url) {
+        console.log('🔗 Found download URL, attempting to fetch flow JSON...');
+        try {
+          const jsonData = await this.fetchFlowJsonFromDownloadUrl(result.preview.download_url);
+          if (jsonData && jsonData.screens) {
+            console.log('✅ Successfully fetched flow JSON from download URL');
+            return {
+              ...jsonData,
+              _flowInfo: result
+            };
+          }
+        } catch (err) {
+          console.warn('⚠️ Failed to fetch from download URL:', err);
+        }
+      }
+      
+      // Return empty structure with note
+      return {
+        version: '7.2',
+        screens: [],
+        _note: 'Flow screen data not accessible. This is normal for published flows. Use "Paste JSON Manually" button if you have the flow JSON.',
+        _flowInfo: result
+      };
+    } catch (error) {
+      console.error('❌ Error fetching flow asset:', error);
+      throw error;
+    }
+  }
+
+  async fetchFlowJsonFromDownloadUrl(downloadUrl: string) {
+    try {
+      console.log('📥 Fetching flow JSON from download URL:', downloadUrl);
+      
+      // Get backend URL from environment
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://whatsappbackend-production-8946.up.railway.app';
+      
+      // Strategy 1: Use backend proxy (bypasses CORS)
+      try {
+        console.log('🔄 Using backend proxy to fetch flow JSON...');
+        const proxyUrl = `${backendUrl}/api/proxy/flow-json?url=${encodeURIComponent(downloadUrl)}`;
+        
+        const response = await fetch(proxyUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            console.log('✅ Flow JSON fetched successfully via proxy');
+            return result.data;
+          }
+        }
+        console.warn('⚠️ Proxy fetch failed:', response.status);
+      } catch (proxyError) {
+        console.warn('⚠️ Proxy fetch error:', proxyError);
+      }
+
+      // Strategy 2: Try without authorization (signed URLs don't need auth)
+      try {
+        console.log('🔓 Attempting without authorization header...');
+        const response = await fetch(downloadUrl, {
+          method: 'GET',
+          mode: 'cors'
+        });
+
+        if (response.ok) {
+          const jsonData = await response.json();
+          console.log('✅ Flow JSON fetched successfully without auth');
+          return jsonData;
+        }
+        console.warn('⚠️ No-auth fetch failed:', response.status);
+      } catch (noAuthError) {
+        console.warn('⚠️ No-auth fetch error:', noAuthError);
+      }
+
+      throw new Error('All fetch strategies failed. Make sure your backend server is running with the /api/proxy/flow-json endpoint.');
+    } catch (error) {
+      console.error('❌ Error fetching flow JSON from download URL:', error);
+      throw error;
+    }
+  }
+
   async createFlowDirect(flowName: string, flowJson: any) {
     try {
       console.log(`Creating flow directly: ${flowName}`);

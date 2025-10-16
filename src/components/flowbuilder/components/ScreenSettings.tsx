@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Settings, X, MessageCircle } from 'lucide-react'
+import { Settings, X, MessageCircle, Trash2 } from 'lucide-react'
 import { useFlowStore } from '../state/store'
+import DeleteConfirmModal from './DeleteConfirmModal'
 
 interface ScreenSettingsProps {
   flowName: string
@@ -11,8 +12,9 @@ interface ScreenSettingsProps {
 }
 
 export default function ScreenSettings({ flowName, setFlowName, customMessage, setCustomMessage }: ScreenSettingsProps) {
-  const { screens, selectedScreenId, updateScreen } = useFlowStore()
+  const { screens, selectedScreenId, updateScreen, removeScreen } = useFlowStore()
   const [isOpen, setIsOpen] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const screen = screens.find(s => s.id === selectedScreenId)
   
   const [formData, setFormData] = useState({
@@ -183,7 +185,43 @@ export default function ScreenSettings({ flowName, setFlowName, customMessage, s
             </div>
           </div>
         </div>
+
+        {/* Delete Screen Section */}
+        {screens.length > 1 && (
+          <div className="border-t border-gray-200 pt-4 mt-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <Trash2 className="w-5 h-5 text-red-600 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-red-900 mb-1">Delete Screen</h4>
+                  <p className="text-xs text-red-700 mb-3">
+                    This will permanently delete the "{screen.id}" screen and all its components.
+                  </p>
+                  <button
+                    onClick={() => setShowDeleteModal(true)}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete This Screen
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete Screen"
+        message={`Are you sure you want to delete the "${screen.id}" screen?\n\nThis will permanently delete all components on this screen.\n\nThis action cannot be undone.`}
+        onConfirm={() => {
+          removeScreen(screen.id)
+          setShowDeleteModal(false)
+        }}
+        onCancel={() => setShowDeleteModal(false)}
+      />
     </div>
   )
 }

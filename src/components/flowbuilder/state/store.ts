@@ -253,12 +253,42 @@ function createDefaultElement(type: ElementType): AnyElement {
     case 'CalendarPicker':
       return { id, type, label: 'Select date range', name: 'calendar_picker', required: false, mode: 'single' }
     case 'Image':
-      return { id, type, src: '/t1.png', altText: 'Local sample image' }
+      return { id, type, src: 'iVBORw0KGgoAAAANSUhEUgAAAB4AAAAKCAIAAAAsFXl4AAAANElEQVR4nGL5ctWagWjwuH0b8YqZiFdKKhg1Gg2wzOawIV61t1AF8YqHZoAMTaMBAQAA//9ljAXx5eZ2mwAAAABJRU5ErkJggg==', altText: 'Sample image' }
     case 'ImageCarousel':
       return { id, type, images: [
-        { src: '/t1.png', altText: 'Local sample 1' },
-        { src: '/t2.png', altText: 'Local sample 2' }
+        { 
+          src: 'iVBORw0KGgoAAAANSUhEUgAAAB4AAAAKCAIAAAAsFXl4AAAANElEQVR4nGL5ctWagWjwuH0b8YqZiFdKKhg1Gg2wzOawIV61t1AF8YqHZoAMTaMBAQAA//9ljAXx5eZ2mwAAAABJRU5ErkJggg==', 
+          altText: 'Landscape image' 
+        },
+        { 
+          src: 'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAALElEQVR4nGIRPRrBgATeWLsjc5kY8AKaSrPIL3FA5i9evZNudhOQBgQAAP//2DAFw06W30wAAAAASUVORK5CYII=', 
+          altText: 'Square image' 
+        }
       ] }
+    case 'PhotoPicker':
+      return { 
+        id, 
+        type, 
+        name: 'photo_picker', 
+        label: 'Upload Photos',
+        description: 'Select photos from your gallery or take new ones',
+        photoSource: 'camera_gallery',
+        maxFileSizeKb: 10240,
+        minUploadedPhotos: 0,
+        maxUploadedPhotos: 10
+      }
+    case 'DocumentPicker':
+      return { 
+        id, 
+        type, 
+        name: 'document_picker', 
+        label: 'Upload Documents',
+        description: 'Select documents to upload',
+        maxFileSizeKb: 10240,
+        minUploadedDocuments: 0,
+        maxUploadedDocuments: 10,
+        allowedMimeTypes: ['application/pdf', 'image/jpeg', 'image/png']
+      }
     case 'NavigationList':
       return { id, type, name: 'navigation_list', listItems: [
         { 
