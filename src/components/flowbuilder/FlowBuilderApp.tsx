@@ -17,10 +17,13 @@ import { WhatsAppService } from './utils/whatsappService'
 import { backendApiService } from './utils/backendApiService'
 import ToastContainer from './components/ToastContainer'
 import { ToastData, ToastType } from './components/Toast'
+import { useFlowBuilderDatabase } from '../../hooks/useFlowBuilderDatabase'
+import { supabase } from '../../lib/supabase-db'
 
 export default function FlowBuilderApp() {
   const { screens, addScreen } = useFlowStore()
   const { messages, triggers } = useMessageLibraryStore()
+  const { createFlow: saveFlowToDatabase } = useFlowBuilderDatabase()
   
   const [showJsonPreview, setShowJsonPreview] = useState(false)
   const [showWhatsAppPreview, setShowWhatsAppPreview] = useState(false)
@@ -103,16 +106,36 @@ export default function FlowBuilderApp() {
     const json = buildFlowJson(screens)
     
     try {
+      // Step 1: Create flow in WhatsApp
       const service = new WhatsAppService()
       const result = await service.createFlow(flowName, 'OTHER')
       
       if (result.success && result.flowId) {
-        showToast('success', 'Flow Created!', `Flow "${flowName}" created successfully with ID: ${result.flowId}`)
-        setFlowActivationMessages(prev => ({
-          ...prev,
-          [result.flowId]: customMessage
-        }))
-        await handleGetAllFlows()
+        showToast('success', 'Flow Created in WhatsApp!', `Flow "${flowName}" created with ID: ${result.flowId}`)
+        
+        // Step 2: Save flow to Supabase database
+        try {
+          const dbResult = await saveFlowToDatabase(
+            flowName,
+            json,
+            result.flowId,
+            undefined // No contest linked by default
+          )
+          
+          showToast('success', 'Flow Saved to Database!', `Form ID: ${dbResult.formId}`)
+          
+          // Store activation message
+          setFlowActivationMessages(prev => ({
+            ...prev,
+            [result.flowId]: customMessage
+          }))
+          
+          // Refresh flows list
+          await handleGetAllFlows()
+        } catch (dbError: any) {
+          showToast('warning', 'Database Save Failed', `Flow created in WhatsApp but not saved to database: ${dbError.message}`)
+          console.error('Database save error:', dbError)
+        }
       } else {
         showToast('error', 'Creation Failed', result.error || 'Failed to create flow')
       }
@@ -126,15 +149,44 @@ export default function FlowBuilderApp() {
   const handleGetAllFlows = async () => {
     setIsLoadingFlows(true)
     try {
+      // Load flows from WhatsApp API
       const service = new WhatsAppService()
       const response = await service.getAllFlows()
       
       // WhatsApp API returns {data: [...]} format
-      const flowsArray = response?.data || response || []
-      console.log('Flows loaded:', flowsArray)
+      const whatsappFlows = response?.data || response || []
+      console.log('WhatsApp flows loaded:', whatsappFlows)
       
-      setAllFlows(Array.isArray(flowsArray) ? flowsArray : [])
-      return flowsArray
+      // Load flows from Supabase database
+      try {
+        const { data: dbForms, error } = await supabase
+          .from('forms')
+          .select('*')
+          .not('flow_id', 'is', null)
+          .order('created_at', { ascending: false })
+        
+        if (error) throw error
+        
+        // Merge WhatsApp flows with database info
+        const mergedFlows = Array.isArray(whatsappFlows) ? whatsappFlows.map((flow: any) => {
+          const dbForm = dbForms?.find(f => f.flow_id === flow.id)
+          return {
+            ...flow,
+            formId: dbForm?.form_id,
+            contestId: dbForm?.contest_id,
+            savedInDatabase: !!dbForm
+          }
+        }) : []
+        
+        console.log('Merged flows with database:', mergedFlows)
+        setAllFlows(mergedFlows)
+        return mergedFlows
+      } catch (dbError) {
+        console.warn('Failed to load database flows:', dbError)
+        // Fall back to WhatsApp flows only
+        setAllFlows(Array.isArray(whatsappFlows) ? whatsappFlows : [])
+        return whatsappFlows
+      }
     } catch (error: any) {
       showToast('error', 'Failed to Load Flows', error.message)
       setAllFlows([])
