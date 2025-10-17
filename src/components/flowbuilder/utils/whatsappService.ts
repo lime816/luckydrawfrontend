@@ -138,8 +138,8 @@ export class WhatsAppService {
       throw new Error('Flow name must be 60 characters or less')
     }
 
-    // Use phone number ID endpoint instead of business account to avoid permission issues
-    const url = `${this.baseUrl}/${this.phoneNumberId}/flows`
+    // Use WhatsApp Business Account ID endpoint for creating flows (correct endpoint)
+    const url = `${this.baseUrl}/${this.businessAccountId}/flows`
     
     // Valid categories according to WhatsApp Business API v22.0 docs
     const validCategories = ['SIGN_UP', 'LEAD_GENERATION', 'CUSTOMER_SUPPORT', 'APPOINTMENT_BOOKING', 'OTHER']
@@ -158,7 +158,7 @@ export class WhatsAppService {
 
     console.log('Creating flow with payload:', JSON.stringify(payload, null, 2))
     console.log('URL:', url)
-    console.log('Phone Number ID:', this.phoneNumberId)
+    console.log('Business Account ID:', this.businessAccountId)
 
     try {
       const response = await fetch(url, {
@@ -201,6 +201,75 @@ export class WhatsAppService {
       return data
     } catch (error) {
       console.error('Error creating flow:', error)
+      throw error
+    }
+  }
+
+  // Update flow JSON (upload the flow content)
+  async updateFlowJson(flowId: string, flowJson: any): Promise<any> {
+    const url = `${this.baseUrl}/${flowId}/assets`
+    
+    console.log('Updating flow JSON for flow:', flowId)
+    console.log('Flow JSON to upload:', JSON.stringify(flowJson, null, 2))
+
+    try {
+      // Create FormData and upload as file
+      const formData = new FormData()
+      const flowBlob = new Blob([JSON.stringify(flowJson)], { type: 'application/json' })
+      formData.append('name', 'flow.json')
+      formData.append('asset_type', 'FLOW_JSON')
+      formData.append('file', flowBlob, 'flow.json')
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`
+          // Don't set Content-Type - let browser set it for FormData
+        },
+        body: formData
+      })
+
+      const data = await response.json()
+      
+      if (!response.ok) {
+        console.error('Flow JSON update error:', data)
+        throw new Error(`Failed to update flow JSON: ${data.error?.message || 'Unknown error'} (Code: ${data.error?.code || 'N/A'})`)
+      }
+
+      console.log('✅ Flow JSON updated successfully:', data)
+      return data
+    } catch (error) {
+      console.error('Error updating flow JSON:', error)
+      throw error
+    }
+  }
+
+  // Publish the flow
+  async publishFlow(flowId: string): Promise<any> {
+    const url = `${this.baseUrl}/${flowId}/publish`
+    
+    console.log('Publishing flow:', flowId)
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const data = await response.json()
+      
+      if (!response.ok) {
+        console.error('Flow publish error:', data)
+        throw new Error(`Failed to publish flow: ${data.error?.message || 'Unknown error'}`)
+      }
+
+      console.log('✅ Flow published successfully')
+      return data
+    } catch (error) {
+      console.error('Error publishing flow:', error)
       throw error
     }
   }
@@ -250,7 +319,7 @@ export class WhatsAppService {
   }
 
   // Send interactive message with flow button
-  async sendFlowMessage(to: string, flowId: string, flowToken?: string, buttonText: string = 'Start Flow'): Promise<any> {
+  async sendFlowMessage(to: string, flowId: string, flowToken?: string, buttonText: string = 'Start Flow', screenId?: string): Promise<any> {
     const url = `${this.baseUrl}/${this.phoneNumberId}/messages`
     
     const payload = {
@@ -278,7 +347,7 @@ export class WhatsAppService {
             flow_cta: buttonText,
             flow_action: 'navigate',
             flow_action_payload: {
-              screen: 'WELCOME',
+              screen: screenId || 'RECOMMEND',  // Use provided screen ID or default
               data: {}
             }
           }
@@ -497,33 +566,6 @@ export class WhatsAppService {
       return data
     } catch (error) {
       console.error('Error uploading flow assets:', error)
-      throw error
-    }
-  }
-
-  // Publish flow for approval
-  async publishFlow(flowId: string): Promise<any> {
-    const url = `${this.baseUrl}/${flowId}/publish`
-    
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      const data = await response.json()
-      
-      if (!response.ok) {
-        console.error('Flow publish error:', data)
-        throw new Error(data.error?.message || `HTTP ${response.status}: ${response.statusText}`)
-      }
-
-      return data
-    } catch (error) {
-      console.error('Error publishing flow:', error)
       throw error
     }
   }

@@ -293,6 +293,49 @@ const QRFlowInitiator: React.FC<QRFlowInitiatorProps> = ({
         )}
       </div>
 
+      {/* Send Flow Now Section */}
+      {activeFlowId && (
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-6 mb-6">
+          <div className="flex items-center mb-4">
+            <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center mr-3">
+              <Play className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h4 className="text-lg font-bold text-green-900">Send Flow Directly</h4>
+              <p className="text-sm text-green-700">Send this flow to any WhatsApp number instantly</p>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number (with country code)
+              </label>
+              <input
+                type="tel"
+                placeholder="918281348343"
+                defaultValue="918281348343"
+                id="phone-number-input"
+                className="w-full px-4 py-2 border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            
+            <button
+              onClick={() => {
+                const phoneInput = document.getElementById('phone-number-input') as HTMLInputElement
+                if (phoneInput && onFlowTrigger) {
+                  onFlowTrigger(phoneInput.value, activeFlowId)
+                }
+              }}
+              className="w-full flex items-center justify-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all shadow-lg hover:shadow-xl"
+            >
+              <Play className="w-5 h-5 mr-2" />
+              Send Flow Now
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Action Buttons */}
       {qrCodeUrl && (
         <div className="grid grid-cols-2 gap-3">

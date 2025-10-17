@@ -110,15 +110,56 @@ export default function FlowBuilderApp() {
       const service = new WhatsAppService()
       const result = await service.createFlow(flowName, 'OTHER')
       
-      if (result.success && result.flowId) {
-        showToast('success', 'Flow Created in WhatsApp!', `Flow "${flowName}" created with ID: ${result.flowId}`)
+      console.log('Flow creation result:', result)
+      
+      // WhatsApp API returns { id: "flowId", name: "flowName", ... }
+      const flowId = result.id || result.flowId
+      
+      if (flowId) {
+        showToast('success', 'Flow Created in WhatsApp!', `Flow "${flowName}" created with ID: ${flowId}`)
         
-        // Step 2: Save flow to Supabase database
+        // Step 2: Upload flow JSON
+        try {
+          showToast('info', 'Uploading Flow Content...', 'Adding your screens to the flow')
+          await service.updateFlowJson(flowId, json)
+          showToast('success', 'Flow Content Uploaded!', 'Your screens have been added')
+        } catch (uploadError: any) {
+          showToast('warning', 'Upload Failed', `Flow created but content not uploaded: ${uploadError.message}`)
+          console.error('Flow JSON upload error:', uploadError)
+        }
+        
+        // Step 3: Publish the flow
+        try {
+          showToast('info', 'Publishing Flow...', 'Making the flow available')
+          await service.publishFlow(flowId)
+          showToast('success', 'Flow Published!', 'Flow is now ready to use')
+        } catch (publishError: any) {
+          showToast('warning', 'Publish Failed', `Flow created but not published: ${publishError.message}`)
+          console.error('Flow publish error:', publishError)
+        }
+        
+        // Step 4: Register flow with backend webhook
+        try {
+          showToast('info', 'Registering Webhook...', 'Setting up automatic flow triggers')
+          const webhookResult = await backendApiService.registerFlow(
+            flowId,
+            flowName,
+            customMessage,
+            true // Auto-create trigger
+          )
+          showToast('success', 'Webhook Registered!', 'QR code will now trigger flow automatically')
+          console.log('Webhook registration result:', webhookResult)
+        } catch (webhookError: any) {
+          showToast('warning', 'Webhook Registration Failed', `Flow works but QR automation may not: ${webhookError.message}`)
+          console.error('Webhook registration error:', webhookError)
+        }
+        
+        // Step 5: Save flow to Supabase database
         try {
           const dbResult = await saveFlowToDatabase(
             flowName,
             json,
-            result.flowId,
+            flowId,
             undefined // No contest linked by default
           )
           
@@ -127,7 +168,7 @@ export default function FlowBuilderApp() {
           // Store activation message
           setFlowActivationMessages(prev => ({
             ...prev,
-            [result.flowId]: customMessage
+            [flowId]: customMessage
           }))
           
           // Refresh flows list
@@ -137,10 +178,12 @@ export default function FlowBuilderApp() {
           console.error('Database save error:', dbError)
         }
       } else {
-        showToast('error', 'Creation Failed', result.error || 'Failed to create flow')
+        showToast('error', 'Creation Failed', result.error || 'Failed to create flow - no ID returned')
+        console.error('Flow creation failed:', result)
       }
     } catch (error: any) {
-      showToast('error', 'Error', error.message || 'An unexpected error occurred')
+      console.error('Flow creation error:', error)
+      showToast('error', 'Failed to create flow', error.message || 'An unexpected error occurred')
     } finally {
       setIsCreatingFlow(false)
     }
@@ -198,7 +241,7 @@ export default function FlowBuilderApp() {
 
   const handleSendActiveFlow = async () => {
     if (!activeFlowId) {
-      showToast('warning', 'No Flow Selected', 'Please select a flow to send')
+      showToast('warning', 'No Flow Selected', 'Please select a flow first from "Manage Flows"')
       return
     }
 
@@ -208,15 +251,31 @@ export default function FlowBuilderApp() {
     }
 
     const activationMessage = flowActivationMessages[activeFlowId] || customMessage
+    const activeFlow = allFlows.find(f => f.id === activeFlowId)
+    const firstScreenId = activeFlow?.screens?.[0]?.id || 'RECOMMEND'
 
     setIsSending(true)
     try {
-      // TODO: Implement sendFlow method in WhatsAppService
-      showToast('info', 'Feature Coming Soon', 'Flow sending will be implemented')
-      // const service = new WhatsAppService()
-      // const result = await service.sendFlow(phoneNumber, activeFlowId, activationMessage)
+      const service = new WhatsAppService()
+      
+      showToast('info', 'Sending Flow...', `Sending "${activeFlow?.name || 'flow'}" to ${phoneNumber}`)
+      
+      const result = await service.sendFlowMessage(
+        phoneNumber,
+        activeFlowId,
+        `token_${Date.now()}`,
+        'Complete Form',
+        firstScreenId
+      )
+      
+      if (result.messages && result.messages.length > 0) {
+        showToast('success', 'Flow Sent!', `Flow message sent successfully to ${phoneNumber}`)
+      } else {
+        showToast('warning', 'Send Status Unknown', 'Message may have been sent but no confirmation received')
+      }
     } catch (error: any) {
-      showToast('error', 'Error', error.message || 'An unexpected error occurred')
+      showToast('error', 'Failed to Send Flow', error.message || 'An unexpected error occurred')
+      console.error('Flow send error:', error)
     } finally {
       setIsSending(false)
     }
@@ -290,10 +349,29 @@ export default function FlowBuilderApp() {
               
               <button
                 onClick={() => setShowMessageLibrary(true)}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-all shadow-sm"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-200 text-gray-700 rounded-md hover:bg-gray-50 hover:border-primary-300 hover:text-primary-700 transition-all"
               >
                 <Library className="w-4 h-4" />
                 <span className="font-medium">Messages</span>
+              </button>
+              
+              {/* Create Flow Button */}
+              <button
+                onClick={handleCreateFlow}
+                disabled={isCreatingFlow}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isCreatingFlow ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    <span className="font-medium">Creating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span className="font-medium">Create Flow</span>
+                  </>
+                )}
               </button>
             </div>
 
