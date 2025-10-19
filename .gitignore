@@ -10,6 +10,7 @@ dist/
 
 # Environment variables
 .env.local
+.env
 .env.development.local
 .env.test.local
 .env.production.local
@@ -90,3 +91,4 @@ jspm_packages/
 
 # DynamoDB Local files
 .dynamodb/
+.env
