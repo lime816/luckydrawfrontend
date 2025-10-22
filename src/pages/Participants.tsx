@@ -239,23 +239,11 @@ export const Participants: React.FC = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
         <Card>
           <div className="text-center">
             <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
             <p className="text-sm text-gray-600 mt-1">Total Participants</p>
-          </div>
-        </Card>
-        <Card>
-          <div className="text-center">
-            <p className="text-3xl font-bold text-green-600">{stats.valid}</p>
-            <p className="text-sm text-gray-600 mt-1">Valid Entries</p>
-          </div>
-        </Card>
-        <Card>
-          <div className="text-center">
-            <p className="text-3xl font-bold text-red-600">{stats.invalid}</p>
-            <p className="text-sm text-gray-600 mt-1">Invalid Entries</p>
           </div>
         </Card>
         <Card>
