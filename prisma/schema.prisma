@@ -18,25 +18,32 @@ datasource db {
 
 // Admin Model - Updated with new fields
 model admins {
-  admin_id              Int                     @id @default(autoincrement())
-  name                  String                  @db.VarChar(100)
-  email                 String                  @unique @db.VarChar(150)
-  password_hash         String                  @db.VarChar(255)
-  role                  role_type               @default(ADMIN)
-  custom_role           String?                 @db.VarChar(150)
-  permissions           Json?                   @db.JsonB
-  two_factor            Boolean                 @default(false)
-  created_at            DateTime                @default(now()) @db.Timestamp(6)
-  last_login            DateTime?               @db.Timestamp(6)
-  is_super_admin        Boolean                 @default(false)
-  supabase_user_id      String?                 @unique @db.Uuid
+  admin_id                      Int                     @id @default(autoincrement())
+  name                          String                  @db.VarChar(100)
+  email                         String                  @unique @db.VarChar(150)
+  password_hash                 String                  @db.VarChar(255)
+  role                          role_type               @default(ADMIN)
+  custom_role                   String?                 @db.VarChar(150)
+  permissions                   Json?                   @db.JsonB
+  two_factor                    Boolean                 @default(false)
+  created_at                    DateTime                @default(now()) @db.Timestamp(6)
+  last_login                    DateTime?               @db.Timestamp(6)
+  is_super_admin                Boolean                 @default(false)
+  supabase_user_id              String?                 @unique @db.Uuid
+  is_approval_manager           Boolean                 @default(false)
+  approval_manager_assigned_at  DateTime?               @db.Timestamp(6)
+  approval_manager_assigned_by  Int?
   
   // Relations
-  admin_activity_log    admin_activity_log[]
-  contests              contests[]              @relation("contest_creator")
-  reviewed_contests     contests[]              @relation("contest_reviewer")
-  draws                 draws[]
-  messages              messages[]
+  admin_activity_log            admin_activity_log[]
+  contests                      contests[]              @relation("contest_creator")
+  reviewed_contests             contests[]              @relation("contest_reviewer")
+  assigned_managers             admins[]                @relation("approval_manager_assignment")
+  assigner                      admins?                 @relation("approval_manager_assignment", fields: [approval_manager_assigned_by], references: [admin_id])
+  draws                         draws[]
+  messages                      messages[]
+  approval_logs                 contest_approval_log[]
+  notifications                 approval_notifications[]
   
   @@schema("public")
 }
@@ -60,33 +67,38 @@ model admin_activity_log {
 
 // Contest Model
 model contests {
-  contest_id        Int              @id @default(autoincrement())
-  name              String           @db.VarChar(150)
-  theme             String?          @db.VarChar(150)
-  description       String?
-  entry_form_id     Int?
-  start_date        DateTime         @db.Timestamp(6)
-  end_date          DateTime         @db.Timestamp(6)
-  entry_rules       Json?            @db.JsonB
-  status            contest_status   @default(UPCOMING)
-  created_by        Int?
-  created_at        DateTime         @default(now()) @db.Timestamp(6)
-  qr_code_url       String?          @db.VarChar(500)
-  approval_status   approval_status  @default(APPROVED)
-  reviewed_by       Int?
-  reviewed_at       DateTime?        @db.Timestamp(6)
-  rejection_reason  String?
-  whatsapp_number   String?          // WhatsApp number with country code (no + or spaces)
-  whatsapp_message  String?          // Custom welcome message for WhatsApp link
+  contest_id              Int                      @id @default(autoincrement())
+  name                    String                   @db.VarChar(150)
+  theme                   String?                  @db.VarChar(150)
+  description             String?
+  entry_form_id           Int?
+  start_date              DateTime                 @db.Timestamp(6)
+  end_date                DateTime                 @db.Timestamp(6)
+  entry_rules             Json?                    @db.JsonB
+  status                  contest_status           @default(UPCOMING)
+  created_by              Int?
+  created_at              DateTime                 @default(now()) @db.Timestamp(6)
+  qr_code_url             String?                  @db.VarChar(500)
+  approval_status         approval_status          @default(PENDING)
+  reviewed_by             Int?
+  reviewed_at             DateTime?                @db.Timestamp(6)
+  rejection_reason        String?
+  whatsapp_number         String?                  // WhatsApp number with country code (no + or spaces)
+  whatsapp_message        String?                  // Custom welcome message for WhatsApp link
+  auto_approve            Boolean                  @default(false)
+  approval_timeout_days   Int?                     @default(7)
+  submitted_at            DateTime?                @default(now()) @db.Timestamp(6)
   
   // Relations
-  creator           admins?          @relation("contest_creator", fields: [created_by], references: [admin_id])
-  reviewer          admins?          @relation("contest_reviewer", fields: [reviewed_by], references: [admin_id])
-  entry_form        forms?           @relation(fields: [entry_form_id], references: [form_id])
-  draws             draws[]
-  messages          messages[]
-  participants      participants[]
-  prizes            prizes[]
+  creator                 admins?                  @relation("contest_creator", fields: [created_by], references: [admin_id])
+  reviewer                admins?                  @relation("contest_reviewer", fields: [reviewed_by], references: [admin_id])
+  entry_form              forms?                   @relation(fields: [entry_form_id], references: [form_id])
+  draws                   draws[]
+  messages                messages[]
+  participants            participants[]
+  prizes                  prizes[]
+  approval_logs           contest_approval_log[]
+  notifications           approval_notifications[]
   
   @@schema("public")
 }
@@ -206,6 +218,43 @@ model form_responses {
   // Relations
   form          forms?         @relation(fields: [form_id], references: [form_id])
   participants  participants[]
+  
+  @@schema("public")
+}
+
+// Contest Approval Log Model
+model contest_approval_log {
+  log_id          Int       @id @default(autoincrement())
+  contest_id      Int
+  action          String    @db.VarChar(50)
+  performed_by    Int
+  performed_at    DateTime  @default(now()) @db.Timestamp(6)
+  previous_status String?   @db.VarChar(50)
+  new_status      String?   @db.VarChar(50)
+  reason          String?
+  metadata        Json?     @db.JsonB
+  
+  // Relations
+  contest         contests  @relation(fields: [contest_id], references: [contest_id], onDelete: Cascade)
+  performer       admins    @relation(fields: [performed_by], references: [admin_id])
+  
+  @@schema("public")
+}
+
+// Approval Notifications Model
+model approval_notifications {
+  notification_id   Int       @id @default(autoincrement())
+  contest_id        Int
+  recipient_id      Int
+  notification_type String    @db.VarChar(50)
+  message           String
+  is_read           Boolean   @default(false)
+  created_at        DateTime  @default(now()) @db.Timestamp(6)
+  read_at           DateTime? @db.Timestamp(6)
+  
+  // Relations
+  contest           contests  @relation(fields: [contest_id], references: [contest_id], onDelete: Cascade)
+  recipient         admins    @relation(fields: [recipient_id], references: [admin_id])
   
   @@schema("public")
 }

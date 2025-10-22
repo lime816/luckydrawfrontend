@@ -19,6 +19,7 @@ import { AdminManagement } from './pages/AdminManagement';
 import { FlowBuilder } from './pages/FlowBuilder';
 import { ClaimPrize } from './pages/ClaimPrize';
 import { ScratchCardPage } from './pages/ScratchCardPage';
+import { PendingApprovals } from './pages/PendingApprovals';
 
 // Component to handle welcome modal
 function WelcomeModalHandler() {
@@ -69,6 +70,7 @@ function App() {
           <Route index element={<Navigate to="/login" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="contests" element={<Contests />} />
+          <Route path="pending-approvals" element={<PendingApprovals />} />
           <Route path="flow-builder" element={<FlowBuilder />} />
           <Route path="participants" element={<Participants />} />
           <Route path="draw" element={<LuckyDraw />} />

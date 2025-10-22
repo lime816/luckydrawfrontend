@@ -167,11 +167,18 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, conte
 
         {/* WhatsApp Indicator */}
         {whatsappLink && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
-            <span className="text-2xl">💬</span>
-            <div>
-              <p className="text-sm font-semibold text-green-800">WhatsApp QR Code</p>
-              <p className="text-xs text-green-600">Participants will be directed to WhatsApp</p>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-2xl">💬</span>
+              <div>
+                <p className="text-sm font-semibold text-green-800">WhatsApp QR Code</p>
+                <p className="text-xs text-green-600">Participants will be directed to WhatsApp</p>
+              </div>
+            </div>
+            <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mt-2">
+              <p className="text-xs text-yellow-800">
+                <strong>Note:</strong> Using default WhatsApp number (15550617327). Message dynamically includes contest name.
+              </p>
             </div>
           </div>
         )}

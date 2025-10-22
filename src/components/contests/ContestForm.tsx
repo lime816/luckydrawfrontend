@@ -266,7 +266,8 @@ export const ContestForm: React.FC<ContestFormProps> = ({ contest, onSave, onCan
         </div>
       </div>
 
-      {/* WhatsApp QR Code Section */}
+      {/* WhatsApp QR Code Section - Temporarily Hidden */}
+      {false && (
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900">WhatsApp QR Code</h3>
         <p className="text-sm text-gray-600">
@@ -348,6 +349,7 @@ export const ContestForm: React.FC<ContestFormProps> = ({ contest, onSave, onCan
           </div>
         )}
       </div>
+      )}
 
       {/* Scratch Card Section */}
       <div className="space-y-4">

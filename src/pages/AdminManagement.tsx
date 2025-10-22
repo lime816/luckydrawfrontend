@@ -73,6 +73,7 @@ export const AdminManagement: React.FC = () => {
       user_management: [] as ('read' | 'write' | 'update')[],
     },
     two_factor: false,
+    is_approval_manager: false,
   });
 
   // Summary statistics
@@ -186,6 +187,7 @@ export const AdminManagement: React.FC = () => {
               user_management: admin.permissions?.user_management || [],
             },
             two_factor: admin.two_factor,
+            is_approval_manager: (admin as any).is_approval_manager || false,
           });
           setShowEditModal(true);
           break;
@@ -326,6 +328,7 @@ export const AdminManagement: React.FC = () => {
           user_management: [],
         },
         two_factor: false,
+        is_approval_manager: false,
       });
       await loadData();
     } catch (error) {
@@ -394,6 +397,7 @@ export const AdminManagement: React.FC = () => {
           user_management: [],
         },
         two_factor: false,
+        is_approval_manager: false,
       });
       await loadData();
     } catch (error) {
@@ -1298,7 +1302,7 @@ export const AdminManagement: React.FC = () => {
                     { key: 'user_management', label: 'User Management', icon: '👤' },
                     { key: 'settings', label: 'Settings', icon: '⚙️' },
                   ].map((page) => (
-                    <div key={page.key} className="border-b border-gray-200 pb-2 last:border-0">
+                    <div key={page.key} className="border-b border-gray-200 pb-2">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm font-medium text-gray-900">
                           {page.icon} {page.label}
@@ -1362,6 +1366,36 @@ export const AdminManagement: React.FC = () => {
                       </div>
                     </div>
                   ))}
+                  
+                  {/* Other Permissions Section */}
+                  <div className="border-t-2 border-purple-200 pt-3 mt-2">
+                    <div className="mb-2">
+                      <span className="text-sm font-semibold text-purple-700">
+                        🔐 Other Permissions
+                      </span>
+                    </div>
+                    <div className="ml-6">
+                      <label className="flex items-center cursor-pointer p-2 hover:bg-purple-50 rounded">
+                        <input
+                          type="checkbox"
+                          checked={formData.is_approval_manager || false}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            is_approval_manager: e.target.checked
+                          })}
+                          className="w-4 h-4 text-purple-600"
+                        />
+                        <div className="ml-3">
+                          <span className="text-sm font-medium text-gray-900">
+                            ✅ Approval Manager
+                          </span>
+                          <p className="text-xs text-gray-500">
+                            Can approve or reject contests created by other admins
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
                   <strong>Read:</strong> View only | <strong>Write:</strong> Create new | <strong>Update:</strong> Edit & delete
@@ -1404,6 +1438,7 @@ export const AdminManagement: React.FC = () => {
                       user_management: [],
                     },
                     two_factor: false,
+                    is_approval_manager: false,
                   });
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
@@ -1522,6 +1557,7 @@ export const AdminManagement: React.FC = () => {
                       user_management: [],
                     },
                     two_factor: false,
+                    is_approval_manager: false,
                   });
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
