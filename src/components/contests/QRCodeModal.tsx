@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { Download, Copy, Check } from 'lucide-react';
+import QRCode from 'qrcode';
 import { Contest } from '../../types';
 import toast from 'react-hot-toast';
 
@@ -14,12 +15,31 @@ interface QRCodeModalProps {
 export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, contest }) => {
   const [copied, setCopied] = useState(false);
 
-  // Use the QR code URL from backend (the image stored in Supabase Storage)
-  const qrCodeImageUrl = contest.qrCodeUrl || '';
-
-  // The URL that the QR code points to (fallback to cat image when QR not generated)
+  // The desired target for the QR code. If contest.qrCodeUrl is set, use that; otherwise fall back to the cat image.
   const catImageUrl = 'https://hips.hearstapps.com/hmg-prod/images/cutest-cat-breeds-ragdoll-663a8c6d52172.jpg?crop=0.5989005497251375xw:1xh;center,top&resize=980:*';
-  const targetUrl = catImageUrl;
+  const targetUrl = contest.qrCodeUrl || catImageUrl;
+
+  // Generate a QR data URL (PNG) that encodes `targetUrl` and display it in the modal.
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [generating, setGenerating] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const gen = async () => {
+      try {
+        setGenerating(true);
+        const dataUrl = await QRCode.toDataURL(targetUrl, { width: 512, margin: 2 });
+        if (!cancelled) setQrDataUrl(dataUrl);
+      } catch (err) {
+        console.error('Failed to generate QR code:', err);
+        if (!cancelled) setQrDataUrl('');
+      } finally {
+        if (!cancelled) setGenerating(false);
+      }
+    };
+    gen();
+    return () => { cancelled = true; };
+  }, [targetUrl]);
 
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(targetUrl);
@@ -30,12 +50,13 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, conte
 
   const handleDownloadQR = async () => {
     try {
-      // Prefer downloading the stored QR image; if missing, download the fallback image
-      const downloadUrl = qrCodeImageUrl || catImageUrl;
-      const response = await fetch(downloadUrl);
-      const blob = await response.blob();
+      if (!qrDataUrl) {
+        toast.error('QR code not generated yet');
+        return;
+      }
 
-      // Create download link
+      const res = await fetch(qrDataUrl);
+      const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -73,19 +94,19 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, conte
           <p className="text-sm text-gray-600">{contest.theme}</p>
         </div>
 
-        {/* QR Code or fallback (cat image) */}
+        {/* QR Code (generated from the target URL) */}
         <div className="flex justify-center p-6 bg-white border-2 border-gray-200 rounded-lg">
-          <img
-            src={qrCodeImageUrl || catImageUrl}
-            alt="Contest QR Code"
-            className="w-64 h-64 object-contain"
-            onError={(e) => {
-              // If image fails to load, show a simple placeholder
-              const el = e.currentTarget as HTMLImageElement;
-              el.style.display = 'none';
-              (el.parentElement as HTMLElement).innerHTML = '<div class="w-64 h-64 flex items-center justify-center bg-gray-100 rounded-lg"><p class="text-gray-500">QR Code not available</p></div>';
-            }}
-          />
+          {generating ? (
+            <div className="w-64 h-64 flex items-center justify-center bg-gray-100 rounded-lg">
+              <p className="text-gray-500">Generating QR code...</p>
+            </div>
+          ) : qrDataUrl ? (
+            <img src={qrDataUrl} alt="Contest QR Code" className="w-64 h-64 object-contain" />
+          ) : (
+            <div className="w-64 h-64 flex items-center justify-center bg-gray-100 rounded-lg">
+              <p className="text-gray-500">QR Code not available</p>
+            </div>
+          )}
         </div>
 
         {/* URL Display */}
