@@ -32,6 +32,8 @@ export interface Contest {
   created_by?: number | null;
   created_at: string;
   qr_code_url?: string | null;
+  whatsapp_number?: string | null;
+  whatsapp_message?: string | null;
 }
 
 export interface Participant {

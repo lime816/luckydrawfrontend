@@ -16,9 +16,18 @@ interface QRCodeModalProps {
 export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, contest }) => {
   const [copied, setCopied] = useState(false);
 
-  // The desired target for the QR code. If contest.qrCodeUrl is set, use that; otherwise fall back to the cat image.
+  // Generate WhatsApp link if available
+  const generateWhatsAppLink = () => {
+    if (contest.whatsappNumber && contest.whatsappMessage) {
+      return `https://wa.me/${contest.whatsappNumber}?text=${encodeURIComponent(contest.whatsappMessage)}`;
+    }
+    return null;
+  };
+
+  // The desired target for the QR code. Priority: WhatsApp link > qrCodeUrl > fallback
+  const whatsappLink = generateWhatsAppLink();
   const catImageUrl = 'https://hips.hearstapps.com/hmg-prod/images/cutest-cat-breeds-ragdoll-663a8c6d52172.jpg?crop=0.5989005497251375xw:1xh;center,top&resize=980:*';
-  const initialTarget = contest.qrCodeUrl || catImageUrl;
+  const initialTarget = whatsappLink || contest.qrCodeUrl || catImageUrl;
 
   // Editable target URL so users can paste a new link
   const [editableUrl, setEditableUrl] = useState<string>(initialTarget);
@@ -29,8 +38,11 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, conte
 
   // Keep editableUrl in sync when modal opens / contest changes
   useEffect(() => {
-    if (isOpen) setEditableUrl(contest.qrCodeUrl || catImageUrl);
-  }, [isOpen, contest.qrCodeUrl]);
+    if (isOpen) {
+      const link = generateWhatsAppLink();
+      setEditableUrl(link || contest.qrCodeUrl || catImageUrl);
+    }
+  }, [isOpen, contest.qrCodeUrl, contest.whatsappNumber, contest.whatsappMessage]);
 
   // Auto-generate QR code whenever the editable URL changes
   useEffect(() => {
@@ -152,6 +164,17 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, conte
             </div>
           )}
         </div>
+
+        {/* WhatsApp Indicator */}
+        {whatsappLink && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+            <span className="text-2xl">💬</span>
+            <div>
+              <p className="text-sm font-semibold text-green-800">WhatsApp QR Code</p>
+              <p className="text-xs text-green-600">Participants will be directed to WhatsApp</p>
+            </div>
+          </div>
+        )}
 
         {/* URL Display */}
         <div>

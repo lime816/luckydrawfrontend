@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Scratch Card Component Styles */
+@import './components/scratch-card-compo/scratch-card.css';
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

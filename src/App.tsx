@@ -17,6 +17,8 @@ import Communication from './pages/Communication';
 import { Settings } from './pages/Settings';
 import { AdminManagement } from './pages/AdminManagement';
 import { FlowBuilder } from './pages/FlowBuilder';
+import { ClaimPrize } from './pages/ClaimPrize';
+import { ScratchCardPage } from './pages/ScratchCardPage';
 
 // Component to handle welcome modal
 function WelcomeModalHandler() {
@@ -52,6 +54,10 @@ function App() {
       <WelcomeModalHandler />
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/claim/:prizeId" element={<ClaimPrize />} />
+        <Route path="/claim" element={<ClaimPrize />} />
+        <Route path="/scratch/:contestId" element={<ScratchCardPage />} />
+        <Route path="/scratch" element={<ScratchCardPage />} />
         <Route
           path="/"
           element={

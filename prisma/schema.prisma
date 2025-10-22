@@ -76,6 +76,8 @@ model contests {
   reviewed_by       Int?
   reviewed_at       DateTime?        @db.Timestamp(6)
   rejection_reason  String?
+  whatsapp_number   String?          // WhatsApp number with country code (no + or spaces)
+  whatsapp_message  String?          // Custom welcome message for WhatsApp link
   
   // Relations
   creator           admins?          @relation("contest_creator", fields: [created_by], references: [admin_id])

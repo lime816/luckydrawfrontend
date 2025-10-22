@@ -3,6 +3,7 @@ import { Button } from '../common/Button';
 import { Input, TextArea } from '../common/Input';
 import { Contest, ContestStatus, Prize } from '../../types';
 import { Plus, Trash2 } from 'lucide-react';
+import { ScratchCardEditorSimple, DEFAULT_SCRATCH_CARD_CONFIG, ScratchCardOptions } from '../scratch-card-compo';
 
 interface ContestFormProps {
   contest: Contest | null;
@@ -25,6 +26,14 @@ export const ContestForm: React.FC<ContestFormProps> = ({ contest, onSave, onCan
   const [prizes, setPrizes] = useState<Prize[]>(contest?.prizes || []);
   const [newPrize, setNewPrize] = useState({ name: '', value: '', quantity: '' });
   const [timeError, setTimeError] = useState('');
+  const [scratchCardEnabled, setScratchCardEnabled] = useState(contest?.scratchCardEnabled || false);
+  const [scratchCardConfig, setScratchCardConfig] = useState<ScratchCardOptions>(
+    contest?.scratchCardConfig || DEFAULT_SCRATCH_CARD_CONFIG
+  );
+  const [whatsappNumber, setWhatsappNumber] = useState(contest?.whatsappNumber || '');
+  const [whatsappMessage, setWhatsappMessage] = useState(
+    contest?.whatsappMessage || `Hi! Please complete the "${formData.name || 'contest'}" - it will only take a few minutes!`
+  );
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -92,7 +101,14 @@ export const ContestForm: React.FC<ContestFormProps> = ({ contest, onSave, onCan
       return;
     }
     
-    onSave({ ...formData, prizes });
+    onSave({ 
+      ...formData, 
+      prizes,
+      scratchCardEnabled,
+      scratchCardConfig: scratchCardEnabled ? scratchCardConfig : undefined,
+      whatsappNumber,
+      whatsappMessage
+    });
   };
 
   return (
@@ -248,6 +264,126 @@ export const ContestForm: React.FC<ContestFormProps> = ({ contest, onSave, onCan
             Add Prize
           </Button>
         </div>
+      </div>
+
+      {/* WhatsApp QR Code Section */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900">WhatsApp QR Code</h3>
+        <p className="text-sm text-gray-600">
+          Generate a WhatsApp link and QR code for easy contest participation
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Input
+              label="WhatsApp Number"
+              name="whatsappNumber"
+              value={whatsappNumber}
+              onChange={(e) => setWhatsappNumber(e.target.value)}
+              placeholder="15550617327"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Enter number with country code (no + or spaces)
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Welcome Message
+          </label>
+          <TextArea
+            name="whatsappMessage"
+            value={whatsappMessage}
+            onChange={(e) => setWhatsappMessage(e.target.value)}
+            placeholder={`Hi! Please complete the "${formData.name || 'contest'}" - it will only take a few minutes!`}
+            rows={3}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            This message will be pre-filled when users click the WhatsApp link
+          </p>
+        </div>
+
+        {whatsappNumber && (
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6">
+            <h4 className="font-semibold text-gray-800 mb-3">Generated WhatsApp Link</h4>
+            <div className="bg-white rounded-lg p-3 mb-3 break-all text-sm font-mono text-gray-700">
+              {`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`}
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`);
+                  alert('Link copied to clipboard!');
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
+              >
+                📋 Copy Link
+              </button>
+              <a
+                href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors text-sm font-semibold"
+              >
+                🔗 Test Link
+              </a>
+            </div>
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-600 mb-2">QR Code:</p>
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`)}`}
+                alt="WhatsApp QR Code"
+                className="mx-auto border-4 border-white shadow-lg rounded-lg"
+              />
+              <a
+                href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`)}`}
+                download={`${formData.name || 'contest'}-whatsapp-qr.png`}
+                className="inline-block mt-3 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-semibold"
+              >
+                ⬇️ Download QR Code
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Scratch Card Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Scratch Card Reveal</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              Add an interactive scratch-to-reveal experience for participants
+            </p>
+          </div>
+
+          {/* Toggle Switch */}
+          <button
+            type="button"
+            onClick={() => setScratchCardEnabled(!scratchCardEnabled)}
+            className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+              scratchCardEnabled ? 'bg-purple-600' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                scratchCardEnabled ? 'translate-x-7' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Scratch Card Editor - Only show when enabled */}
+        {scratchCardEnabled && (
+          <div className="mt-6">
+            <ScratchCardEditorSimple
+              value={scratchCardConfig}
+              onChange={setScratchCardConfig}
+            />
+          </div>
+        )}
       </div>
 
       {/* Form Actions */}

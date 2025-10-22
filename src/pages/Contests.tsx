@@ -265,6 +265,8 @@ export const Contests: React.FC = () => {
             createdAt: contest.created_at,
             updatedAt: contest.created_at,
             qrCodeUrl: contest.qr_code_url || undefined,
+            whatsappNumber: contest.whatsapp_number || undefined,
+            whatsappMessage: contest.whatsapp_message || undefined,
             isActive: finalIsActive,
             approvalStatus: contest.approval_status || 'APPROVED',
             rejectionReason: contest.rejection_reason,
@@ -334,6 +336,8 @@ export const Contests: React.FC = () => {
         entry_rules: contestData.entryRules || null,
         status: autoStatus, // Automatically set based on dates
         approval_status: isSuperAdmin ? 'APPROVED' : 'PENDING', // Non-superadmin creates pending contests
+        whatsapp_number: contestData.whatsappNumber || null,
+        whatsapp_message: contestData.whatsappMessage || null,
       };
       
       // Don't include is_active in payload until column is added to database
@@ -477,6 +481,8 @@ export const Contests: React.FC = () => {
         end_time: contestData.endTime,
         entry_rules: contestData.entryRules,
         status: contestData.status,
+        whatsapp_number: contestData.whatsappNumber || null,
+        whatsapp_message: contestData.whatsappMessage || null,
       });
       
       // Reload contests after update

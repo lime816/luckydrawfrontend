@@ -1,0 +1,372 @@
+/**
+ * Scratch Card Component Styles
+ * Add these styles to your global CSS or import this file
+ */
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Reveal Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Animation Classes */
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.5s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out forwards;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+/* Scratch Card Container */
+.scratch-card-container {
+  position: relative;
+  display: inline-block;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Prevent text selection during scratching */
+.scratch-card-container * {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Touch action for mobile */
+.scratch-canvas {
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+
+/* Loading State */
+.scratch-card-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 1rem;
+}
+
+.scratch-card-loading::after {
+  content: '';
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Progress Indicator */
+.scratch-progress {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  font-size: 1.125rem;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Reset Button */
+.scratch-reset-button {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  background: linear-gradient(to right, #9333ea, #ec4899);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  z-index: 10;
+  cursor: pointer;
+  border: none;
+}
+
+.scratch-reset-button:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.scratch-reset-button:active {
+  transform: scale(0.95);
+}
+
+/* Scratch Hint */
+.scratch-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.scratch-hint-content {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.scratch-hint-text {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Editor Styles */
+.scratch-editor-tab {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.scratch-editor-tab-active {
+  background: white;
+  color: #9333ea;
+  border-bottom: 2px solid #9333ea;
+}
+
+.scratch-editor-tab-inactive {
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+.scratch-editor-tab-inactive:hover {
+  background: #f3f4f6;
+}
+
+/* Color Preset Button */
+.color-preset-button {
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  border: 2px solid #d1d5db;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.color-preset-button:hover {
+  transform: scale(1.1);
+}
+
+.color-preset-button-active {
+  border-color: #9333ea;
+  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.3);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  height: 1.5rem;
+  width: 2.75rem;
+  align-items: center;
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.toggle-switch-active {
+  background-color: #9333ea;
+}
+
+.toggle-switch-inactive {
+  background-color: #d1d5db;
+}
+
+.toggle-switch-thumb {
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  transform: translateX(0.25rem);
+  border-radius: 9999px;
+  background-color: white;
+  transition: transform 0.2s;
+}
+
+.toggle-switch-thumb-active {
+  transform: translateX(1.5rem);
+}
+
+/* Range Slider */
+.scratch-slider {
+  width: 100%;
+  height: 0.5rem;
+  background: #e5e7eb;
+  border-radius: 0.5rem;
+  appearance: none;
+  cursor: pointer;
+}
+
+.scratch-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: #9333ea;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.scratch-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.2);
+}
+
+.scratch-slider::-moz-range-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  background: #9333ea;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.scratch-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.2);
+}
+
+/* Preview Indicators */
+.preview-indicator {
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  backdrop-filter: blur(4px);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  .scratch-progress {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+  }
+
+  .scratch-reset-button {
+    bottom: 0.5rem;
+    right: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .scratch-hint-content {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .scratch-card-container {
+    page-break-inside: avoid;
+  }
+
+  .scratch-reset-button,
+  .scratch-progress {
+    display: none;
+  }
+}

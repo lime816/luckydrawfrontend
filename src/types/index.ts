@@ -57,9 +57,13 @@ export interface Contest {
   createdAt: string;
   updatedAt: string;
   qrCodeUrl?: string; // URL for QR code participation
+  whatsappNumber?: string; // WhatsApp number for contest participation
+  whatsappMessage?: string; // Custom welcome message for WhatsApp
   isActive?: boolean; // Whether the contest is active/enabled
   approvalStatus?: ApprovalStatus; // Approval status for non-superadmin contests
   rejectionReason?: string; // Reason if rejected
+  scratchCardEnabled?: boolean; // Whether scratch card reveal is enabled
+  scratchCardConfig?: any; // Scratch card configuration (ScratchCardOptions)
 }
 
 export enum ContestStatus {
