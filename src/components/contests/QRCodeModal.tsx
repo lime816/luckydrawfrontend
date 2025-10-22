@@ -16,9 +16,10 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, conte
 
   // Use the QR code URL from backend (the image stored in Supabase Storage)
   const qrCodeImageUrl = contest.qrCodeUrl || '';
-  
-  // The URL that the QR code points to
-  const targetUrl = 'https://hips.hearstapps.com/hmg-prod/images/cutest-cat-breeds-ragdoll-663a8c6d52172.jpg?crop=0.5989005497251375xw:1xh;center,top&resize=980:*';
+
+  // The URL that the QR code points to (fallback to cat image when QR not generated)
+  const catImageUrl = 'https://hips.hearstapps.com/hmg-prod/images/cutest-cat-breeds-ragdoll-663a8c6d52172.jpg?crop=0.5989005497251375xw:1xh;center,top&resize=980:*';
+  const targetUrl = catImageUrl;
 
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(targetUrl);
@@ -28,16 +29,12 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, conte
   };
 
   const handleDownloadQR = async () => {
-    if (!qrCodeImageUrl) {
-      toast.error('QR code not available');
-      return;
-    }
-
     try {
-      // Fetch the QR code image from Supabase Storage
-      const response = await fetch(qrCodeImageUrl);
+      // Prefer downloading the stored QR image; if missing, download the fallback image
+      const downloadUrl = qrCodeImageUrl || catImageUrl;
+      const response = await fetch(downloadUrl);
       const blob = await response.blob();
-      
+
       // Create download link
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -76,19 +73,19 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, conte
           <p className="text-sm text-gray-600">{contest.theme}</p>
         </div>
 
-        {/* QR Code */}
+        {/* QR Code or fallback (cat image) */}
         <div className="flex justify-center p-6 bg-white border-2 border-gray-200 rounded-lg">
-          {qrCodeImageUrl ? (
-            <img 
-              src={qrCodeImageUrl} 
-              alt="Contest QR Code" 
-              className="w-64 h-64 object-contain"
-            />
-          ) : (
-            <div className="w-64 h-64 flex items-center justify-center bg-gray-100 rounded-lg">
-              <p className="text-gray-500">QR Code not available</p>
-            </div>
-          )}
+          <img
+            src={qrCodeImageUrl || catImageUrl}
+            alt="Contest QR Code"
+            className="w-64 h-64 object-contain"
+            onError={(e) => {
+              // If image fails to load, show a simple placeholder
+              const el = e.currentTarget as HTMLImageElement;
+              el.style.display = 'none';
+              (el.parentElement as HTMLElement).innerHTML = '<div class="w-64 h-64 flex items-center justify-center bg-gray-100 rounded-lg"><p class="text-gray-500">QR Code not available</p></div>';
+            }}
+          />
         </div>
 
         {/* URL Display */}
