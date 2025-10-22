@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
-import { Download, Copy, Check } from 'lucide-react';
+import { Download, Copy, Check, RefreshCw } from 'lucide-react';
 import QRCode from 'qrcode';
 import { Contest } from '../../types';
 import toast from 'react-hot-toast';
@@ -17,18 +17,27 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, conte
 
   // The desired target for the QR code. If contest.qrCodeUrl is set, use that; otherwise fall back to the cat image.
   const catImageUrl = 'https://hips.hearstapps.com/hmg-prod/images/cutest-cat-breeds-ragdoll-663a8c6d52172.jpg?crop=0.5989005497251375xw:1xh;center,top&resize=980:*';
-  const targetUrl = contest.qrCodeUrl || catImageUrl;
+  const initialTarget = contest.qrCodeUrl || catImageUrl;
 
-  // Generate a QR data URL (PNG) that encodes `targetUrl` and display it in the modal.
+  // Editable target URL so users can paste a new link
+  const [editableUrl, setEditableUrl] = useState<string>(initialTarget);
+
+  // Generate a QR data URL (PNG) that encodes `editableUrl` and display it in the modal.
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [generating, setGenerating] = useState(false);
 
+  // Keep editableUrl in sync when modal opens / contest changes
+  useEffect(() => {
+    if (isOpen) setEditableUrl(contest.qrCodeUrl || catImageUrl);
+  }, [isOpen, contest.qrCodeUrl]);
+
+  // Auto-generate QR code whenever the editable URL changes
   useEffect(() => {
     let cancelled = false;
     const gen = async () => {
       try {
         setGenerating(true);
-        const dataUrl = await QRCode.toDataURL(targetUrl, { width: 512, margin: 2 });
+        const dataUrl = await QRCode.toDataURL(editableUrl, { width: 512, margin: 2 });
         if (!cancelled) setQrDataUrl(dataUrl);
       } catch (err) {
         console.error('Failed to generate QR code:', err);
@@ -39,13 +48,27 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, conte
     };
     gen();
     return () => { cancelled = true; };
-  }, [targetUrl]);
+  }, [editableUrl]);
 
   const handleCopyUrl = () => {
-    navigator.clipboard.writeText(targetUrl);
+    navigator.clipboard.writeText(editableUrl);
     setCopied(true);
     toast.success('URL copied to clipboard!');
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const regenerateQRCode = async () => {
+    try {
+      setGenerating(true);
+      const dataUrl = await QRCode.toDataURL(editableUrl, { width: 512, margin: 2 });
+      setQrDataUrl(dataUrl);
+      toast.success('QR code regenerated');
+    } catch (err) {
+      console.error('Failed to regenerate QR code:', err);
+      toast.error('Failed to regenerate QR code');
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const handleDownloadQR = async () => {
@@ -117,18 +140,28 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, conte
           <div className="flex gap-2">
             <input
               type="text"
-              value={targetUrl}
-              readOnly
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
+              value={editableUrl}
+              onChange={(e) => setEditableUrl(e.target.value)}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm"
             />
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              onClick={handleCopyUrl}
-            >
-              {copied ? 'Copied!' : 'Copy'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                onClick={handleCopyUrl}
+              >
+                {copied ? 'Copied!' : 'Copy'}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={<RefreshCw className="w-4 h-4" />}
+                onClick={regenerateQRCode}
+              >
+                Refresh
+              </Button>
+            </div>
           </div>
         </div>
 
