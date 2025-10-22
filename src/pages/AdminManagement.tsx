@@ -1379,10 +1379,20 @@ export const AdminManagement: React.FC = () => {
                         <input
                           type="checkbox"
                           checked={formData.is_approval_manager || false}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            is_approval_manager: e.target.checked
-                          })}
+                          onChange={(e) => {
+                            const isChecked = e.target.checked;
+                            setFormData({
+                              ...formData,
+                              is_approval_manager: isChecked,
+                              // Auto-grant contest permissions when approval manager is enabled
+                              permissions: {
+                                ...formData.permissions,
+                                contests: isChecked 
+                                  ? ['read', 'write', 'update'] as ('read' | 'write' | 'update')[]
+                                  : formData.permissions.contests
+                              }
+                            });
+                          }}
                           className="w-4 h-4 text-purple-600"
                         />
                         <div className="ml-3">
@@ -1391,6 +1401,9 @@ export const AdminManagement: React.FC = () => {
                           </span>
                           <p className="text-xs text-gray-500">
                             Can approve or reject contests created by other admins
+                          </p>
+                          <p className="text-xs text-purple-600 mt-1">
+                            ⚡ Auto-grants full Contest Management permissions
                           </p>
                         </div>
                       </label>
