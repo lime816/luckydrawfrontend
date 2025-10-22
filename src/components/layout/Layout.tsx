@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
-import { Toaster } from 'react-hot-toast';
+// Toaster is mounted at the application root (App.tsx). Avoid mounting it here to prevent duplicate toasts.
 
 export const Layout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -18,7 +18,7 @@ export const Layout: React.FC = () => {
           </div>
         </main>
       </div>
-      <Toaster position="top-right" />
+  {/* Toaster intentionally not mounted here; App.tsx mounts a single global Toaster */}
     </div>
   );
 };

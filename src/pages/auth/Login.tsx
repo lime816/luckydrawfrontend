@@ -5,7 +5,7 @@ import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { AuthService } from '../../services/authService';
 
 export const Login: React.FC = () => {
@@ -69,7 +69,7 @@ export const Login: React.FC = () => {
 
   return (
     <>
-      <Toaster position="top-right" />
+  {/* Toaster mounted in App.tsx */}
       <div className="min-h-screen bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl p-8">

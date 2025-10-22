@@ -5,6 +5,7 @@ import { Download, Copy, Check, RefreshCw } from 'lucide-react';
 import QRCode from 'qrcode';
 import { Contest } from '../../types';
 import toast from 'react-hot-toast';
+import { DatabaseService } from '../../services/database';
 
 interface QRCodeModalProps {
   isOpen: boolean;
@@ -60,10 +61,29 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, conte
   const regenerateQRCode = async () => {
     try {
       setGenerating(true);
+      // Basic URL validation
+      try {
+        // will throw if invalid
+        // eslint-disable-next-line no-new
+        new URL(editableUrl);
+      } catch (validationErr) {
+        toast.error('Please enter a valid URL');
+        return;
+      }
+
       const dataUrl = await QRCode.toDataURL(editableUrl, { width: 512, margin: 2 });
-  setQrDataUrl(dataUrl);
-  // Use a fixed toast id so duplicate calls don't show multiple toasts
-  toast.success('QR code regenerated', { id: 'qr-regenerated' });
+      setQrDataUrl(dataUrl);
+
+      // Persist the new QR target URL to the contest record (Supabase)
+      try {
+        // contest.id is a string in the UI models; the database expects a number
+        await DatabaseService.updateContest(parseInt(contest.id), { qr_code_url: editableUrl });
+        // Use a fixed toast id so duplicate calls don't show multiple toasts
+        toast.success('QR code regenerated and saved', { id: 'qr-regenerated' });
+      } catch (dbErr) {
+        console.error('Failed to save QR target URL:', dbErr);
+        toast.error('QR regenerated but failed to save target URL');
+      }
     } catch (err) {
       console.error('Failed to regenerate QR code:', err);
       toast.error('Failed to regenerate QR code');
