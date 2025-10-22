@@ -136,7 +136,7 @@ export const Communication: React.FC = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <div className="flex items-center gap-3">
             <div className="p-3 bg-blue-100 rounded-lg">
@@ -145,28 +145,6 @@ export const Communication: React.FC = () => {
             <div>
               <p className="text-2xl font-bold text-gray-900">{messageStats.total}</p>
               <p className="text-sm text-gray-600">Total Messages</p>
-            </div>
-          </div>
-        </Card>
-        <Card>
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <Send className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-green-600">{messageStats.email}</p>
-              <p className="text-sm text-gray-600">Email</p>
-            </div>
-          </div>
-        </Card>
-        <Card>
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-yellow-100 rounded-lg">
-              <Clock className="w-6 h-6 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-yellow-600">{messageStats.sms}</p>
-              <p className="text-sm text-gray-600">SMS</p>
             </div>
           </div>
         </Card>
