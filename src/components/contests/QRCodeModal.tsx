@@ -61,8 +61,9 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, conte
     try {
       setGenerating(true);
       const dataUrl = await QRCode.toDataURL(editableUrl, { width: 512, margin: 2 });
-      setQrDataUrl(dataUrl);
-      toast.success('QR code regenerated');
+  setQrDataUrl(dataUrl);
+  // Use a fixed toast id so duplicate calls don't show multiple toasts
+  toast.success('QR code regenerated', { id: 'qr-regenerated' });
     } catch (err) {
       console.error('Failed to regenerate QR code:', err);
       toast.error('Failed to regenerate QR code');
