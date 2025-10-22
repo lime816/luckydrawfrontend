@@ -20,49 +20,14 @@ import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 import { CheckCircle, XCircle } from 'lucide-react';
 
-// Function to generate QR code and upload to Supabase Storage
+// Function to set QR code URL for a contest. For now we use a static cat image for all contests
 const generateAndUploadQRCode = async (contestId: number, contestName: string): Promise<string> => {
   try {
-    // Use the specified URL for all QR codes
-    const qrCodeUrl = 'https://hips.hearstapps.com/hmg-prod/images/cutest-cat-breeds-ragdoll-663a8c6d52172.jpg?crop=0.5989005497251375xw:1xh;center,top&resize=980:*';
-    
-    // Generate QR code as data URL
-    const qrCodeDataUrl = await QRCode.toDataURL(qrCodeUrl, {
-      width: 500,
-      margin: 2,
-      color: {
-        dark: '#000000',
-        light: '#FFFFFF'
-      }
-    });
-    
-    // Convert data URL to blob
-    const response = await fetch(qrCodeDataUrl);
-    const blob = await response.blob();
-    
-    // Create file name
-    const fileName = `contest-${contestId}-${Date.now()}.png`;
-    const filePath = `qr-codes/${fileName}`;
-    
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from('contest-qr-codes')
-      .upload(filePath, blob, {
-        contentType: 'image/png',
-        upsert: true
-      });
-    
-    if (error) {
-      console.error('Error uploading QR code:', error);
-      throw error;
-    }
-    
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('contest-qr-codes')
-      .getPublicUrl(filePath);
-    
-    return publicUrl;
+    const catImageUrl = 'https://hips.hearstapps.com/hmg-prod/images/cutest-cat-breeds-ragdoll-663a8c6d52172.jpg?crop=0.5989005497251375xw:1xh;center,top&resize=980:*';
+    console.log(`Using static cat image for contest ${contestId} (${contestName})`);
+    // Return the external cat image URL directly. If you prefer storing images in Supabase storage,
+    // we can download & upload the image here instead — kept simple for now.
+    return catImageUrl;
   } catch (error) {
     console.error('Error in generateAndUploadQRCode:', error);
     throw error;
