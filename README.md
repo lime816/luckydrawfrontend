@@ -5,12 +5,14 @@ A comprehensive Lucky Draw Management System built with React, TypeScript, and T
 ## Features
 
 ### Dashboard
+
 - **Overview Statistics**: Real-time metrics for contests, participants, entries, and winners
 - **Quick Stats**: Engagement rates, completion rates, and prize claim statistics
 - **Notifications**: Contest closing alerts, pending draws, and prize distribution reminders
 - **Participation trends**: Visual charts showing daily/weekly/monthly trends
 
 ### Contest Management
+
 - **Create & Edit Contests**: Full form with name, theme, description, dates, and status
 - **Prize Configuration**: Add multiple prizes with name, value, and quantity
 - **Entry Rules**: Define participation rules and methods (QR, WhatsApp, Manual)
@@ -18,6 +20,7 @@ A comprehensive Lucky Draw Management System built with React, TypeScript, and T
 - **Status Management**: Draft, Upcoming, Ongoing, Completed, Cancelled
 
 ### Participant Management
+
 - **Comprehensive Table View**: Display all participants with filtering and search
 - **Validation**: Automatic duplicate detection and validation
 - **Import/Export**: CSV and Excel support for bulk operations
@@ -25,6 +28,7 @@ A comprehensive Lucky Draw Management System built with React, TypeScript, and T
 - **Duplicate Removal**: Identify and remove duplicate entries
 
 ### Lucky Draw Execution
+
 - **Secure Random Selection**: Cryptographically secure random winner selection
 - **Manual & Scheduled Draws**: Choose between immediate or scheduled draws
 - **Live Draw Animation**: Engaging animated winner reveal
@@ -32,6 +36,7 @@ A comprehensive Lucky Draw Management System built with React, TypeScript, and T
 - **Draw History**: Complete audit trail of all draws
 
 ### Winner Management
+
 - **Winner List**: Comprehensive list with prize status tracking
 - **Status Management**: Pending, Notified, Claimed, Dispatched, Delivered
 - **Auto Notifications**: WhatsApp integration-ready for winner notifications
@@ -39,6 +44,7 @@ A comprehensive Lucky Draw Management System built with React, TypeScript, and T
 - **Bulk Operations**: Send notifications to multiple winners at once
 
 ### Communication
+
 - **Message Templates**: Pre-built templates for welcome, reminders, and results
 - **Custom Messaging**: Send custom messages to selected participants
 - **Message History**: Track all sent messages with status
@@ -46,6 +52,7 @@ A comprehensive Lucky Draw Management System built with React, TypeScript, and T
 - **Auto Messages**: Automated welcome, reminder, and result announcements
 
 ### Reports & Analytics
+
 - **Participation trends**: Line charts showing growth over time
 - **Contest Performance**: Bar charts comparing contest engagement
 - **Entry Method Distribution**: Pie charts showing participation methods
@@ -54,6 +61,7 @@ A comprehensive Lucky Draw Management System built with React, TypeScript, and T
 - **Export Reports**: Download analytics in Excel/PDF format
 
 ### User & Role Management
+
 - **Multiple Admin Accounts**: Support for multiple administrators
 - **Role-based Permissions**: Super Admin, Admin, Moderator roles
 - **Activity Logs**: Complete audit trail of all user actions
@@ -61,6 +69,7 @@ A comprehensive Lucky Draw Management System built with React, TypeScript, and T
 - **User Management**: Add, edit, and remove admin users
 
 ### Security Features
+
 - **JWT Authentication**: Secure token-based authentication
 - **Protected Routes**: Route guards for authenticated access
 - **Encrypted Data**: Participant details encryption
@@ -86,19 +95,26 @@ A comprehensive Lucky Draw Management System built with React, TypeScript, and T
 ## Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone <repository-url>
 cd Lucky-Draw-Frontend
 ```
+
 2. **Install dependencies**
+
 ```bash
 npm install
 ```
+
 3. **Configure environment variables**
+
 ```bash
 cp .env.example .env
 ```
+
 Edit `.env` and configure your API endpoint:
+
 ````
 REACT_APP_API_URL=http://localhost:5000/api
 ```
@@ -118,22 +134,23 @@ This creates an optimized production build in the `build` folder.
 ## Project Structure
 
 ````
+
 src/
 components/
-common/          # Reusable UI components
+common/ # Reusable UI components
 Button.tsx
 Card.tsx
 Input.tsx
 Modal.tsx
 Table.tsx
 Badge.tsx
-layout/          # Layout components
+layout/ # Layout components
 Layout.tsx
 Sidebar.tsx
 Header.tsx
-contests/        # Feature-specific components
+contests/ # Feature-specific components
 ContestForm.tsx
-pages/               # Page components
+pages/ # Page components
 auth/
 Login.tsx
 Dashboard.tsx
@@ -145,18 +162,19 @@ Communication.tsx
 Analytics.tsx
 Users.tsx
 Settings.tsx
-store/               # State management
+store/ # State management
 authStore.ts
 notificationStore.ts
-types/               # TypeScript types
+types/ # TypeScript types
 index.ts
-utils/               # Utility functions
+utils/ # Utility functions
 api.ts
 helpers.ts
-routes/              # Route configuration
+routes/ # Route configuration
 ProtectedRoute.tsx
-App.tsx              # Main app component
-index.tsx            # Entry point
+App.tsx # Main app component
+index.tsx # Entry point
+
 ```
 ## Default Login Credentials
 
@@ -173,6 +191,20 @@ For demo purposes, you can use any email and password:
 - **Toast Notifications**: Real-time feedback for user actions
 - **Loading States**: Clear loading indicators for async operations
 - **Error Handling**: Graceful error messages and fallbacks
+
+## Latest features & backend updates
+
+- Role-based access & approval workflows
+	- RBAC and approval workflow tooling and documentation are included (`APPROVAL_*` docs, `link-super-admin.js`, `create-test-admin.sql`).
+	- Admin role management scripts and SQL helpers for production-ready permissioning.
+
+- WhatsApp & Flow integration
+	- WhatsApp integration helpers and token update scripts (`update-whatsapp-token.ps1`, `validate-whatsapp-token.ps1`, `WHATSAPP_IMPLEMENTATION_STATUS.md`).
+	- Flow migration and helper scripts for moving/configuring WhatsApp Flows (`run-flow-migration.js`, `setup-flow-integration.ps1`).
+
+- Scratch card & contest features
+	- Scratch-card support and setup guide (`SCRATCH_CARD_SETUP_GUIDE.md`) for gamified contests.
+	- Additional contest timing scripts and SQL (`add-contest-times.sql`).
 
 ## Configuration
 
@@ -236,3 +268,4 @@ For support, email support@example.com or open an issue in the repository.
 - All open-source contributors
 
 ---
+```
