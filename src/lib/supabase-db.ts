@@ -30,6 +30,7 @@ export interface Contest {
   entry_rules?: any | null;
   status: 'DRAFT' | 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
   created_by?: number | null;
+  created_by_role?: string | null;
   created_at: string;
   qr_code_url?: string | null;
   

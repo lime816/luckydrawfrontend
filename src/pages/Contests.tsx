@@ -345,9 +345,9 @@ export const Contests: React.FC = () => {
         entry_rules: contestData.entryRules || null,
         status: autoStatus, // Automatically set based on dates
         approval_status: isSuperAdmin ? 'APPROVED' : 'PENDING', // Non-superadmin creates pending contests
-        // Record who created this contest
-        // Also record creator's role so DB has creator role on insert
-        created_by: user?.role || null,
+        // Record who created this contest (id) and the creator's role
+        created_by: user?.id ? Number(user.id) : null,
+        created_by_role: user?.role || null,
       // Note: do not include whatsapp_number column in payload because the DB schema may not have it.
       };
       
