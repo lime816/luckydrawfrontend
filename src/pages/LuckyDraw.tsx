@@ -26,6 +26,8 @@ export const LuckyDraw: React.FC = () => {
   const [contests, setContests] = useState<ContestWithStats[]>([]);
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [remainingPrizeSlots, setRemainingPrizeSlots] = useState<number>(0);
+  const [prizeRemainingMap, setPrizeRemainingMap] = useState<Record<number, number>>({});
   const [selectedContest, setSelectedContest] = useState('');
   const [selectedPrize, setSelectedPrize] = useState('');
   const [winnersCount, setWinnersCount] = useState(1);
@@ -95,6 +97,35 @@ export const LuckyDraw: React.FC = () => {
       
       setPrizes(prizeData);
       setParticipants(participantData);
+      // Compute remaining prize slots and per-prize remaining quantities
+      try {
+        const allWinners = await DatabaseService.getWinnersByContest(contestId);
+        const totalSlots = (prizeData || []).reduce((s, p) => s + (p.quantity || 0), 0);
+        const existingWinnersCount = (allWinners || []).length;
+        const remainingSlots = Math.max(0, totalSlots - existingWinnersCount);
+        setRemainingPrizeSlots(remainingSlots);
+
+        const allocatedByPrize: Record<number, number> = {};
+        (allWinners || []).forEach((w: any) => {
+          if (w.prize_id) allocatedByPrize[w.prize_id] = (allocatedByPrize[w.prize_id] || 0) + 1;
+        });
+        const map: Record<number, number> = {};
+        (prizeData || []).forEach(p => {
+          const allocated = allocatedByPrize[p.prize_id] || 0;
+          map[p.prize_id] = Math.max(0, (p.quantity || 0) - allocated);
+        });
+        setPrizeRemainingMap(map);
+        // Clamp winnersCount if it exceeds available slots
+        if (selectedPrize) {
+          const sel = parseInt(selectedPrize);
+          const rem = map[sel] ?? 0;
+          if (winnersCount > rem) setWinnersCount(Math.max(1, rem));
+        } else if (winnersCount > remainingSlots) {
+          setWinnersCount(Math.max(1, remainingSlots));
+        }
+      } catch (e) {
+        console.warn('Could not compute prize remaining slots:', e);
+      }
     } catch (error) {
       console.error('Error loading prizes and participants:', error);
       toast.error('Failed to load contest data');
@@ -295,14 +326,21 @@ export const LuckyDraw: React.FC = () => {
                 </label>
                 <select
                   value={selectedPrize}
-                  onChange={(e) => setSelectedPrize(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedPrize(e.target.value);
+                    const pid = parseInt(e.target.value || '0');
+                    if (pid && prizeRemainingMap[pid] !== undefined) {
+                      const rem = prizeRemainingMap[pid];
+                      if (winnersCount > rem) setWinnersCount(Math.max(1, rem));
+                    }
+                  }}
                   className="input-field"
                   disabled={isDrawing}
                 >
                   <option value="">Choose a prize...</option>
                   {prizes.map((prize) => (
                     <option key={prize.prize_id} value={prize.prize_id}>
-                      {prize.prize_name} (Available: {prize.quantity})
+                      {prize.prize_name} (Available: {prizeRemainingMap[prize.prize_id] ?? prize.quantity})
                     </option>
                   ))}
                 </select>
@@ -316,12 +354,13 @@ export const LuckyDraw: React.FC = () => {
                 <input
                   type="number"
                   min="1"
-                  max="10"
+                  max={selectedPrize ? (prizeRemainingMap[parseInt(selectedPrize)] ?? remainingPrizeSlots) : (remainingPrizeSlots || 10)}
                   value={winnersCount}
                   onChange={(e) => setWinnersCount(parseInt(e.target.value) || 1)}
                   className="input-field"
                   disabled={isDrawing}
                 />
+                <p className="text-xs text-gray-500 mt-1">Remaining prize slots: {remainingPrizeSlots}</p>
               </div>
 
               {/* Draw Type */}
