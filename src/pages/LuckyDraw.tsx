@@ -157,9 +157,10 @@ export const LuckyDraw: React.FC = () => {
       const mapped: DrawParticipant[] = drawWinners.map(w => {
         const participant = (w as any).participants || null;
         const contact = participant?.contact || '';
+        const winnerName = (w as any).winner_name || participant?.name || '';
         return {
           id: w.participant_id.toString(),
-          name: participant?.name || '',
+          name: winnerName,
           email: contact.includes('@') ? contact : 'N/A',
           phone: contact && !contact.includes('@') ? contact : 'N/A',
         };
@@ -210,9 +211,10 @@ export const LuckyDraw: React.FC = () => {
       const mapped = drawWinners.map(w => {
         const participant = (w as any).participants || null;
         const contact = participant?.contact || '';
+        const winnerName = (w as any).winner_name || participant?.name || '';
         return {
           id: w.participant_id.toString(),
-          name: participant?.name || '',
+          name: winnerName,
           email: contact.includes('@') ? contact : 'N/A',
           phone: contact && !contact.includes('@') ? contact : 'N/A',
         } as DrawParticipant;
