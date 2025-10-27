@@ -68,6 +68,7 @@ export const Dashboard: React.FC = () => {
       .channel('public:participants')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'participants' }, () => {
         refreshQuickStats();
+        refreshParticipationTrend();
       })
       .subscribe();
 
@@ -85,8 +86,10 @@ export const Dashboard: React.FC = () => {
       })
       .subscribe();
 
-    // initial quick stats load
-    refreshQuickStats();
+  // initial quick stats load
+  refreshQuickStats();
+  // initial participation trend load
+  refreshParticipationTrend();
 
     return () => {
       try {
@@ -259,6 +262,66 @@ export const Dashboard: React.FC = () => {
     },
   };
 
+  // Dynamic chart data for participation trend
+  const [dynamicChartData, setDynamicChartData] = React.useState<any>(chartData);
+
+  // Refresh participation trend based on participants' entry_timestamp
+  const refreshParticipationTrend = async () => {
+    try {
+      // Fetch participants from the last 14 days to be safe
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+      const isoStart = start.toISOString();
+
+      const { data: participants, error } = await supabase
+        .from('participants')
+        .select('entry_timestamp')
+        .gte('entry_timestamp', isoStart);
+
+      if (error) {
+        console.warn('Could not load participation trend:', error);
+        return;
+      }
+
+      // Build labels for last 7 days
+      const labels: string[] = [];
+      const counts: number[] = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        labels.push(formatDate(d.toISOString(), 'EEE'));
+        counts.push(0);
+      }
+
+      (participants || []).forEach((p: any) => {
+        const ts = p.entry_timestamp || p.created_at || null;
+        if (!ts) return;
+        const d = new Date(ts);
+        // normalize to midnight of that day
+        const dateOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const diffDays = Math.round((dateOnly.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays >= 0 && diffDays < 7) {
+          counts[diffDays] = (counts[diffDays] || 0) + 1;
+        }
+      });
+
+      setDynamicChartData({
+        labels,
+        datasets: [
+          {
+            label: 'Participants',
+            data: counts,
+            borderColor: 'rgb(14, 165, 233)',
+            backgroundColor: 'rgba(14, 165, 233, 0.1)',
+            fill: true,
+            tension: 0.4,
+          },
+        ],
+      });
+    } catch (e) {
+      console.warn('Error computing participation trend:', e);
+    }
+  };
+
   const statCards = [
     {
       title: 'Total Contests',
@@ -384,7 +447,7 @@ export const Dashboard: React.FC = () => {
         {/* Participation Trend Chart */}
         <Card className="lg:col-span-2" title="Participation Trend" subtitle="Last 7 days">
           <div className="h-64">
-            <Line data={chartData} options={chartOptions} />
+            <Line data={dynamicChartData} options={chartOptions} />
           </div>
         </Card>
 
