@@ -16,10 +16,12 @@ interface QRCodeModalProps {
 export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, contest }) => {
   const [copied, setCopied] = useState(false);
 
-  // Generate WhatsApp link if available
+  // Generate WhatsApp link if available. Use a welcome message that includes the contest name
   const generateWhatsAppLink = () => {
-    if (contest.whatsappNumber && contest.whatsappMessage) {
-      return `https://wa.me/${contest.whatsappNumber}?text=${encodeURIComponent(contest.whatsappMessage)}`;
+    if (contest.whatsappNumber) {
+      const cleanNumber = (contest.whatsappNumber || '').toString().replace(/[^0-9]/g, '');
+      const welcome = `Welcome to \"${contest.name}\"`;
+      return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(welcome)}`;
     }
     return null;
   };
@@ -42,7 +44,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, conte
       const link = generateWhatsAppLink();
       setEditableUrl(link || contest.qrCodeUrl || catImageUrl);
     }
-  }, [isOpen, contest.qrCodeUrl, contest.whatsappNumber, contest.whatsappMessage]);
+  }, [isOpen, contest.qrCodeUrl, contest.whatsappNumber]);
 
   // Auto-generate QR code whenever the editable URL changes
   useEffect(() => {
