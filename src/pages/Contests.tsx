@@ -337,15 +337,32 @@ export const Contests: React.FC = () => {
         entry_rules: contestData.entryRules || null,
         status: autoStatus, // Automatically set based on dates
         approval_status: isSuperAdmin ? 'APPROVED' : 'PENDING', // Non-superadmin creates pending contests
-        // WhatsApp fields commented out until database columns are added
-        // whatsapp_number: contestData.whatsappNumber || null,
-        // whatsapp_message: contestData.whatsappMessage || null,
+        // Record who created this contest
+        created_by: user?.id ? Number(user.id) : null,
+        // Include WhatsApp fields if provided so they are persisted on create
+        whatsapp_number: contestData.whatsappNumber || null,
+        whatsapp_message: contestData.whatsappMessage || null,
       };
       
       // Don't include is_active in payload until column is added to database
       // contestPayload.is_active = autoIsActive;
       
       console.log('Contest payload:', contestPayload);
+
+      // If WhatsApp number provided, build wa.me link and include as qr_code_url in the initial create payload
+      if (contestData.whatsappNumber) {
+        try {
+          const normalized = (contestData.whatsappNumber || '').toString().replace(/[^0-9]/g, '');
+          // Build a welcome message that includes the contest name
+          const welcomeMsg = `Welcome to \"${contestData.name}\"`;
+          const message = `?text=${encodeURIComponent(welcomeMsg)}`;
+          const waLink = `https://wa.me/${normalized}${message}`;
+          contestPayload.qr_code_url = waLink;
+          console.log('Including wa.me link in create payload:', waLink);
+        } catch (e) {
+          console.warn('Failed to build wa.me link for payload, will attempt to set after create:', e);
+        }
+      }
       
       const result = await DatabaseService.createContest(contestPayload);
       console.log('Contest created successfully:', result);
@@ -355,8 +372,9 @@ export const Contests: React.FC = () => {
         try {
           // Normalize number: remove non-digit characters (keep country code)
           const normalized = (contestData.whatsappNumber || '').toString().replace(/[^0-9]/g, '');
-          // Build wa.me link; include optional message if provided
-          const message = contestData.whatsappMessage ? `?text=${encodeURIComponent(contestData.whatsappMessage)}` : '';
+          // Build a welcome message that includes the created contest's name
+          const welcomeMsg = `Welcome to \"${result.name}\"`;
+          const message = `?text=${encodeURIComponent(welcomeMsg)}`;
           const waLink = `https://wa.me/${normalized}${message}`;
           console.log('Saving WhatsApp wa.me link as qr_code_url:', waLink);
 
