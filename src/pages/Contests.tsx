@@ -350,18 +350,43 @@ export const Contests: React.FC = () => {
       const result = await DatabaseService.createContest(contestPayload);
       console.log('Contest created successfully:', result);
       
-      // Generate and upload QR code
-      try {
-        const qrCodeUrl = await generateAndUploadQRCode(result.contest_id, result.name);
-        console.log('QR Code generated and uploaded:', qrCodeUrl);
-        
-        // Update contest with QR code URL
-        await DatabaseService.updateContest(result.contest_id, {
-          qr_code_url: qrCodeUrl
-        });
-      } catch (qrError) {
-        console.error('Error generating QR code:', qrError);
-        // Don't fail the whole operation if QR generation fails
+      // If the creator provided a WhatsApp number, prefer saving a wa.me link as the qr_code_url
+      if (contestData.whatsappNumber) {
+        try {
+          // Normalize number: remove non-digit characters (keep country code)
+          const normalized = (contestData.whatsappNumber || '').toString().replace(/[^0-9]/g, '');
+          // Build wa.me link; include optional message if provided
+          const message = contestData.whatsappMessage ? `?text=${encodeURIComponent(contestData.whatsappMessage)}` : '';
+          const waLink = `https://wa.me/${normalized}${message}`;
+          console.log('Saving WhatsApp wa.me link as qr_code_url:', waLink);
+
+          await DatabaseService.updateContest(result.contest_id, {
+            qr_code_url: waLink
+          });
+        } catch (waErr) {
+          console.error('Failed to save WhatsApp link to contest, falling back to QR image generation:', waErr);
+          // fallback to image generation if saving wa.me fails
+          try {
+            const qrCodeUrl = await generateAndUploadQRCode(result.contest_id, result.name);
+            console.log('QR Code generated and uploaded (fallback):', qrCodeUrl);
+            await DatabaseService.updateContest(result.contest_id, { qr_code_url: qrCodeUrl });
+          } catch (qrError) {
+            console.error('Error generating QR code in fallback:', qrError);
+          }
+        }
+      } else {
+        // No WhatsApp number provided — generate and upload QR image as before
+        try {
+          const qrCodeUrl = await generateAndUploadQRCode(result.contest_id, result.name);
+          console.log('QR Code generated and uploaded:', qrCodeUrl);
+          // Update contest with QR code URL
+          await DatabaseService.updateContest(result.contest_id, {
+            qr_code_url: qrCodeUrl
+          });
+        } catch (qrError) {
+          console.error('Error generating QR code:', qrError);
+          // Don't fail the whole operation if QR generation fails
+        }
       }
       
       // Also create prizes if any
