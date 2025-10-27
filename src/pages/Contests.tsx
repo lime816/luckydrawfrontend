@@ -394,9 +394,11 @@ export const Contests: React.FC = () => {
       try {
         const defaultNumber = '15550617327';
         const numberToUse = (contestData.whatsappNumber && contestData.whatsappNumber.toString().replace(/[^0-9]/g, '')) || defaultNumber;
-        const welcomeMsg = `Welcome to \"${result.name}\"`;
-        const message = `?text=${encodeURIComponent(welcomeMsg)}`;
-        const waLink = `https://wa.me/${numberToUse}${message}`;
+  const welcomeMsg = `Welcome to \"${result.name}\"`;
+  // Include a registration marker so the backend knows which contest the user scanned
+  const prefill = `REGISTER_CONTEST:${result.contest_id} ${welcomeMsg}`;
+  const message = `?text=${encodeURIComponent(prefill)}`;
+  const waLink = `https://wa.me/${numberToUse}${message}`;
         console.log('Saving WhatsApp wa.me link as qr_code_url:', waLink);
 
         await DatabaseService.updateContest(result.contest_id, {
