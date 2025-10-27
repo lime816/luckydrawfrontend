@@ -245,6 +245,27 @@ export class SupabaseService {
     numberOfWinners: number,
     prizeIds?: number[]
   ): Promise<{ draw: Draw; winners: Winner[] }> {
+    // Attempt server-side execution via backend endpoint (uses service role key)
+    try {
+      const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001') + '/api/draws/execute';
+      const resp = await fetch(backendUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contestId, executedBy, numberOfWinners, prizeIds })
+      });
+
+      if (resp.ok) {
+        const payload = await resp.json();
+        if (payload.success) return { draw: payload.draw, winners: payload.winners };
+        // If backend responded but signalled failure, fallthrough to client-side implementation
+        console.warn('Backend draw execution failed, falling back to client-side:', payload.error || payload);
+      } else {
+        console.warn('Backend draw endpoint returned non-ok status, falling back to client-side:', resp.status);
+      }
+    } catch (err) {
+      // network/connection error talking to backend — fallback to client-side logic
+      console.warn('Could not call backend draw endpoint, falling back to client-side executeRandomDraw:', err);
+    }
     // Get validated participants
     const participants = await this.getValidatedParticipants(contestId);
     
