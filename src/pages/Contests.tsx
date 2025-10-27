@@ -339,8 +339,7 @@ export const Contests: React.FC = () => {
         approval_status: isSuperAdmin ? 'APPROVED' : 'PENDING', // Non-superadmin creates pending contests
         // Record who created this contest
         created_by: user?.id ? Number(user.id) : null,
-        // Include WhatsApp number if provided
-        whatsapp_number: contestData.whatsappNumber || null,
+  // Note: do not include whatsapp_number column in payload because the DB schema may not have it.
       };
       
       // Don't include is_active in payload until column is added to database
