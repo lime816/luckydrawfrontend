@@ -68,7 +68,6 @@ model contests {
   entry_rules   Json?           @db.JsonB
   status        contest_status  @default(UPCOMING)
   created_by    Int?
-  created_by_role role_type?
   created_at    DateTime        @default(now()) @db.Timestamp(6)
   qr_code_url   String?         @db.VarChar(500)
   approval_status approval_status @default(PENDING)
