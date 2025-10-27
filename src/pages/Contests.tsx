@@ -341,11 +341,6 @@ export const Contests: React.FC = () => {
         created_by: user?.id ? Number(user.id) : null,
         // Include WhatsApp number if provided
         whatsapp_number: contestData.whatsappNumber || null,
-        // Only persist whatsapp_message when it's a plain message (not a URL). If the user pasted a wa.me link
-        // we will store the link in `qr_code_url` instead and avoid saving it into whatsapp_message.
-        whatsapp_message: (contestData.whatsappMessage && !/(https?:\/\/|wa\.me)/i.test(contestData.whatsappMessage))
-          ? contestData.whatsappMessage
-          : null,
       };
       
       // Don't include is_active in payload until column is added to database
@@ -353,7 +348,7 @@ export const Contests: React.FC = () => {
       
       console.log('Contest payload:', contestPayload);
 
-      // If WhatsApp number provided, build wa.me link and include as qr_code_url in the initial create payload
+  // If WhatsApp number provided, build wa.me link and include as qr_code_url in the initial create payload
       if (contestData.whatsappNumber) {
         try {
           const normalized = (contestData.whatsappNumber || '').toString().replace(/[^0-9]/g, '');
@@ -365,6 +360,23 @@ export const Contests: React.FC = () => {
           console.log('Including wa.me link in create payload:', waLink);
         } catch (e) {
           console.warn('Failed to build wa.me link for payload, will attempt to set after create:', e);
+        }
+      }
+      // If a whatsapp message was provided but the schema does not have a `whatsapp_message` column,
+      // or the user provided a direct link, persist it in `qr_code_url` instead of the missing column.
+      if (contestData.whatsappMessage && !contestPayload.qr_code_url) {
+        try {
+          // If the message looks like a URL (including wa.me), store it directly.
+          if (/(https?:\/\/|wa\.me)/i.test(contestData.whatsappMessage)) {
+            contestPayload.qr_code_url = contestData.whatsappMessage;
+            console.log('Storing provided URL/message in qr_code_url:', contestData.whatsappMessage);
+          } else if (!contestData.whatsappNumber) {
+            // No number provided — store the plain message into qr_code_url as a fallback (keeps data safe)
+            contestPayload.qr_code_url = contestData.whatsappMessage;
+            console.log('No number provided; storing whatsappMessage in qr_code_url:', contestData.whatsappMessage);
+          }
+        } catch (e) {
+          console.warn('Failed to set whatsappMessage into qr_code_url on payload:', e);
         }
       }
       
