@@ -130,35 +130,55 @@ export const LuckyDraw: React.FC = () => {
     // Close the confirmation modal
     setShowConfirmModal(false);
 
+    // Start animation
     setIsDrawing(true);
     setShowAnimation(true);
     setWinners([]);
     setShowConfetti(false);
 
-    // Simulate drawing animation
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    try {
+      // Simulate drawing animation
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    // Convert participants to DrawParticipant format
-    const drawParticipants: DrawParticipant[] = participants.map(p => ({
-      id: p.participant_id.toString(),
-      name: p.name,
-      email: p.contact.includes('@') ? p.contact : 'N/A',
-      phone: p.contact.includes('@') ? 'N/A' : p.contact,
-    }));
+      // Execute and persist the draw server-side
+      const prizeIds = selectedPrize ? [parseInt(selectedPrize)] : undefined;
+      setSavingResults(true);
+      const result = await DatabaseService.executeRandomDraw(
+        parseInt(selectedContest),
+        1, // TODO: replace with real admin id from auth context
+        winnersCount,
+        prizeIds
+      );
 
-    // Select random winners
-    const selectedWinners = secureRandomSelection(drawParticipants, winnersCount);
-    setWinners(selectedWinners);
-    setIsDrawing(false);
-    
-    // Start confetti animation
-    setShowConfetti(true);
-    toast.success(`${selectedWinners.length} winner(s) selected!`);
-    
-    // Stop confetti after 10 seconds
-    setTimeout(() => {
-      setShowConfetti(false);
-    }, 10000);
+      // Fetch persisted winners (joined with participant info) and show only winners for this draw
+      const allWinners = await DatabaseService.getWinnersByContest(parseInt(selectedContest));
+      const drawWinners = allWinners.filter(w => w.draw_id === result.draw.draw_id);
+
+      const mapped: DrawParticipant[] = drawWinners.map(w => {
+        const participant = (w as any).participants || null;
+        const contact = participant?.contact || '';
+        return {
+          id: w.participant_id.toString(),
+          name: participant?.name || '',
+          email: contact.includes('@') ? contact : 'N/A',
+          phone: contact && !contact.includes('@') ? contact : 'N/A',
+        };
+      });
+
+      setWinners(mapped);
+      toast.success(`${mapped.length} winner(s) selected!`);
+      setShowConfetti(true);
+
+      // Stop confetti after 10 seconds
+      setTimeout(() => setShowConfetti(false), 10000);
+    } catch (error) {
+      console.error('Error executing draw:', error);
+      toast.error('Failed to execute draw');
+    } finally {
+      setSavingResults(false);
+      setIsDrawing(false);
+      setShowAnimation(false);
+    }
   };
 
   const handleReDraw = () => {
