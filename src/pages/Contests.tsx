@@ -306,6 +306,14 @@ export const Contests: React.FC = () => {
   const handleCreateContest = async (contestData: any) => {
     try {
       console.log('Creating contest with data (IST):', contestData);
+
+      // Ensure we have an authenticated user before creating contests. If user info is missing
+      // created_by will be null and the DB/trigger won't be able to populate creator info.
+      if (!user?.id) {
+        console.error('Cannot create contest: authenticated user id is missing');
+        setError('You must be signed in to create a contest');
+        return;
+      }
       
       // Ensure times are provided
       if (!contestData.startTime || !contestData.endTime) {
