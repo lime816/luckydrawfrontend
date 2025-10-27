@@ -34,6 +34,7 @@ export const LuckyDraw: React.FC = () => {
   const [showAnimation, setShowAnimation] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [savingResults, setSavingResults] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // Load contests on mount
@@ -168,27 +169,48 @@ export const LuckyDraw: React.FC = () => {
 
   const handleSaveResults = async () => {
     if (!selectedContest || winners.length === 0) return;
-
     try {
+      setSavingResults(true);
+
       const prizeIds = selectedPrize ? [parseInt(selectedPrize)] : undefined;
-      
-      await DatabaseService.executeRandomDraw(
+
+      // Execute the draw server-side and persist winners
+      const result = await DatabaseService.executeRandomDraw(
         parseInt(selectedContest),
         1, // TODO: Get actual admin ID from auth context
         winners.length,
         prizeIds
       );
-      
+
+      // Fetch persisted winners for this contest and draw to show authoritative data
+      const allWinners = await DatabaseService.getWinnersByContest(parseInt(selectedContest));
+      const drawWinners = allWinners.filter(w => w.draw_id === result.draw.draw_id);
+
+      // Map to local DrawParticipant shape
+      const mapped = drawWinners.map(w => {
+        const participant = (w as any).participants || null;
+        const contact = participant?.contact || '';
+        return {
+          id: w.participant_id.toString(),
+          name: participant?.name || '',
+          email: contact.includes('@') ? contact : 'N/A',
+          phone: contact && !contact.includes('@') ? contact : 'N/A',
+        } as DrawParticipant;
+      });
+
+      setWinners(mapped);
+
       toast.success('Draw results saved successfully!');
-      
-      // Reset state
-      setWinners([]);
+
+      // Reset UI selections (keep winners displayed)
       setShowAnimation(false);
-      setShowConfetti(false);
+      setShowConfetti(true);
       setSelectedPrize('');
     } catch (error) {
       console.error('Error saving draw results:', error);
       toast.error('Failed to save draw results');
+    } finally {
+      setSavingResults(false);
     }
   };
 
@@ -395,7 +417,7 @@ export const LuckyDraw: React.FC = () => {
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                      <Button variant="primary" onClick={handleSaveResults} className="flex-1">
+                  <Button variant="primary" onClick={handleSaveResults} className="flex-1" loading={savingResults} disabled={savingResults}>
                         Save Results
                       </Button>
                       <Button variant="secondary" onClick={handleReDraw}>
