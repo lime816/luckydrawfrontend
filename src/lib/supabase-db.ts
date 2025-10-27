@@ -331,11 +331,25 @@ export class SupabaseService {
         prizes(*),
         draws(*)
       `)
-      .eq('draws.contest_id', contestId)
-      .order('draws.executed_at', { ascending: false });
-    
+      // Filtering/sorting by joined table columns (draws.*) can be fragile via PostgREST
+      // (it may produce order strings like `draws.executed_at.desc` which some PostgREST
+      // parsers reject). Fetch the joined rows and perform filtering/sorting in JS instead.
+
     if (error) throw error;
-    return data || [];
+
+    const all = data || [];
+
+    // Keep only winners that belong to draws for this contest
+    const filtered = all.filter((w: any) => w.draws && w.draws.contest_id === contestId);
+
+    // Sort by draws.executed_at desc (newest first)
+    filtered.sort((a: any, b: any) => {
+      const ta = a.draws && a.draws.executed_at ? new Date(a.draws.executed_at).getTime() : 0;
+      const tb = b.draws && b.draws.executed_at ? new Date(b.draws.executed_at).getTime() : 0;
+      return tb - ta;
+    });
+
+    return filtered as Winner[];
   }
 
   static async updateWinnerNotification(winnerId: number, notified: boolean): Promise<Winner> {
