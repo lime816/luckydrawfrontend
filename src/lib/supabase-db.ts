@@ -71,6 +71,8 @@ export interface Winner {
   winner_id: number;
   draw_id: number;
   participant_id: number;
+  // denormalized participant name for easier reporting
+  winner_name?: string;
   prize_id?: number;
   prize_status: 'PENDING' | 'CLAIMED' | 'SHIPPED';
   notified: boolean;
@@ -280,6 +282,44 @@ export class SupabaseService {
       throw new Error('Number of winners cannot exceed number of participants');
     }
 
+    // Best-effort: enforce prize slot limits on the client-side fallback as well.
+    try {
+      const { data: prizesForContest, error: prizesErr } = await supabase
+        .from('prizes')
+        .select('quantity')
+        .eq('contest_id', contestId);
+
+      if (!prizesErr && prizesForContest) {
+        const totalPrizeSlots = (prizesForContest || []).reduce((sum: number, p: any) => sum + (p.quantity || 0), 0);
+
+        // Count existing winners for this contest by looking up draws and winners
+        const { data: drawsForContest, error: drawsErr } = await supabase
+          .from('draws')
+          .select('draw_id')
+          .eq('contest_id', contestId);
+
+        if (!drawsErr && drawsForContest) {
+          const drawIds = (drawsForContest || []).map((d: any) => d.draw_id);
+          let existingWinnersCount = 0;
+          if (drawIds.length > 0) {
+            const { data: existingWinners } = await supabase
+              .from('winners')
+              .select('winner_id')
+              .in('draw_id', drawIds);
+            existingWinnersCount = (existingWinners || []).length;
+          }
+
+          const remainingPrizeSlots = totalPrizeSlots - existingWinnersCount;
+          if (numberOfWinners > remainingPrizeSlots) {
+            throw new Error(`Not enough prizes remaining. Requested ${numberOfWinners}, but only ${remainingPrizeSlots} prize slots are available.`);
+          }
+        }
+      }
+    } catch (e) {
+      // If we couldn't fetch prize/draw info due to RLS or network, proceed with participant-only check above.
+      console.warn('Could not enforce prize limits on client-side fallback:', e);
+    }
+
     // Create the draw
     const draw = await this.createDraw({
       contest_id: contestId,
@@ -299,6 +339,7 @@ export class SupabaseService {
       return this.createWinner({
         draw_id: draw.draw_id,
         participant_id: participant.participant_id,
+  winner_name: participant.name || undefined,
         prize_id: prizeId || undefined,
         prize_status: 'PENDING',
         notified: false,

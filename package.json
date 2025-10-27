@@ -48,6 +48,7 @@
     "db:setup": "node setup-database.js",
     "db:test": "node setup-database.js",
     "prisma:test": "node test-prisma-direct.js",
+  "apply:migration": "node ./scripts/apply_migration.js ./prisma/migrations/20251027_add_winner_name/migration.sql",
     "postinstall": "prisma generate"
   },
   "eslintConfig": {

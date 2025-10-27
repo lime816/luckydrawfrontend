@@ -141,6 +141,8 @@ model winners {
   winner_id      Int          @id @default(autoincrement())
   draw_id        Int
   participant_id Int
+  // denormalized participant name for reporting convenience
+  winner_name    String?      @db.Text
   prize_id       Int?
   prize_status   prize_status @default(PENDING)
   notified       Boolean      @default(false)
