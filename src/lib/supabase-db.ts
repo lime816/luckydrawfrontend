@@ -271,6 +271,52 @@ export class SupabaseService {
       // network/connection error talking to backend — fallback to client-side logic
       console.error('Could not call backend draw endpoint, falling back to client-side executeRandomDraw:', err);
     }
+    // Before attempting client-side draw, ensure we can read prize/draw info to enforce prize limits.
+    // If we cannot (likely due to RLS / anon key restrictions), refuse to perform client-side writes and ask caller to use backend.
+    try {
+      const { data: prizesForContest, error: prizesErr } = await supabase
+        .from('prizes')
+        .select('quantity')
+        .eq('contest_id', contestId);
+
+      if (prizesErr) {
+        throw new Error('Insufficient permissions to read prizes; cannot perform client-side draw. Use backend draw execution.');
+      }
+
+      const totalPrizeSlots = (prizesForContest || []).reduce((sum: number, p: any) => sum + (p.quantity || 0), 0);
+
+      // Count existing winners for this contest by looking up draws and winners
+      const { data: drawsForContest, error: drawsErr } = await supabase
+        .from('draws')
+        .select('draw_id')
+        .eq('contest_id', contestId);
+
+      if (drawsErr) {
+        throw new Error('Insufficient permissions to read draws; cannot perform client-side draw. Use backend draw execution.');
+      }
+
+      const drawIds = (drawsForContest || []).map((d: any) => d.draw_id);
+      let existingWinnersCount = 0;
+      if (drawIds.length > 0) {
+        const { data: existingWinners, error: existingWinnersErr } = await supabase
+          .from('winners')
+          .select('winner_id')
+          .in('draw_id', drawIds);
+        if (existingWinnersErr) {
+          throw new Error('Insufficient permissions to read winners; cannot perform client-side draw. Use backend draw execution.');
+        }
+        existingWinnersCount = (existingWinners || []).length;
+      }
+
+      const remainingPrizeSlots = totalPrizeSlots - existingWinnersCount;
+      if (numberOfWinners > remainingPrizeSlots) {
+        throw new Error(`Not enough prizes remaining. Requested ${numberOfWinners}, but only ${remainingPrizeSlots} prize slots are available.`);
+      }
+    } catch (err) {
+      // Bubble up permission or insufficient-prizes errors instead of silently falling back and creating winners.
+      throw err;
+    }
+
     // Get validated participants
     const participants = await this.getValidatedParticipants(contestId);
     
@@ -283,42 +329,7 @@ export class SupabaseService {
     }
 
     // Best-effort: enforce prize slot limits on the client-side fallback as well.
-    try {
-      const { data: prizesForContest, error: prizesErr } = await supabase
-        .from('prizes')
-        .select('quantity')
-        .eq('contest_id', contestId);
-
-      if (!prizesErr && prizesForContest) {
-        const totalPrizeSlots = (prizesForContest || []).reduce((sum: number, p: any) => sum + (p.quantity || 0), 0);
-
-        // Count existing winners for this contest by looking up draws and winners
-        const { data: drawsForContest, error: drawsErr } = await supabase
-          .from('draws')
-          .select('draw_id')
-          .eq('contest_id', contestId);
-
-        if (!drawsErr && drawsForContest) {
-          const drawIds = (drawsForContest || []).map((d: any) => d.draw_id);
-          let existingWinnersCount = 0;
-          if (drawIds.length > 0) {
-            const { data: existingWinners } = await supabase
-              .from('winners')
-              .select('winner_id')
-              .in('draw_id', drawIds);
-            existingWinnersCount = (existingWinners || []).length;
-          }
-
-          const remainingPrizeSlots = totalPrizeSlots - existingWinnersCount;
-          if (numberOfWinners > remainingPrizeSlots) {
-            throw new Error(`Not enough prizes remaining. Requested ${numberOfWinners}, but only ${remainingPrizeSlots} prize slots are available.`);
-          }
-        }
-      }
-    } catch (e) {
-      // If we couldn't fetch prize/draw info due to RLS or network, proceed with participant-only check above.
-      console.warn('Could not enforce prize limits on client-side fallback:', e);
-    }
+    // (Removed duplicate enforcement — already performed above before creating draw)
 
     // Create the draw
     const draw = await this.createDraw({

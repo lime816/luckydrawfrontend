@@ -153,6 +153,22 @@ export const LuckyDraw: React.FC = () => {
       return;
     }
 
+    // Prevent starting a draw if there are no remaining prize slots
+    if (remainingPrizeSlots <= 0) {
+      toast.error('No prize slots remaining for this contest');
+      return;
+    }
+
+    // If a specific prize is selected, ensure that prize still has remaining quantity
+    if (selectedPrize) {
+      const pid = parseInt(selectedPrize);
+      const rem = prizeRemainingMap[pid] ?? 0;
+      if (rem <= 0) {
+        toast.error('Selected prize has no remaining units');
+        return;
+      }
+    }
+
     // Show confirmation modal
     setShowConfirmModal(true);
   };
@@ -400,7 +416,7 @@ export const LuckyDraw: React.FC = () => {
                   icon={<Play className="w-5 h-5" />}
                   onClick={handleDrawClick}
                   loading={isDrawing}
-                  disabled={!selectedContest || !selectedPrize}
+                  disabled={!selectedContest || !selectedPrize || remainingPrizeSlots <= 0}
                   className="flex-1"
                 >
                   {isDrawing ? 'Drawing...' : 'Start Draw'}
