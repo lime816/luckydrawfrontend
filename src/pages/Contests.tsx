@@ -347,19 +347,18 @@ export const Contests: React.FC = () => {
       
       console.log('Contest payload:', contestPayload);
 
-  // If WhatsApp number provided, build wa.me link and include as qr_code_url in the initial create payload
-      if (contestData.whatsappNumber) {
-        try {
-          const normalized = (contestData.whatsappNumber || '').toString().replace(/[^0-9]/g, '');
-          // Build a welcome message that includes the contest name
-          const welcomeMsg = `Welcome to \"${contestData.name}\"`;
-          const message = `?text=${encodeURIComponent(welcomeMsg)}`;
-          const waLink = `https://wa.me/${normalized}${message}`;
-          contestPayload.qr_code_url = waLink;
-          console.log('Including wa.me link in create payload:', waLink);
-        } catch (e) {
-          console.warn('Failed to build wa.me link for payload, will attempt to set after create:', e);
-        }
+      // Always build a wa.me link and include it as qr_code_url in the initial create payload.
+      // Use provided number if present, otherwise fall back to default number used elsewhere in the app.
+      try {
+        const defaultNumber = '15550617327';
+        const numberToUse = (contestData.whatsappNumber && contestData.whatsappNumber.toString().replace(/[^0-9]/g, '')) || defaultNumber;
+        const welcomeMsg = `Welcome to \"${contestData.name}\"`;
+        const message = `?text=${encodeURIComponent(welcomeMsg)}`;
+        const waLink = `https://wa.me/${numberToUse}${message}`;
+        contestPayload.qr_code_url = waLink;
+        console.log('Including wa.me link in create payload (number used):', numberToUse, waLink);
+      } catch (e) {
+        console.warn('Failed to build wa.me link for payload, will attempt to set after create:', e);
       }
       // If a whatsapp message was provided but the schema does not have a `whatsapp_message` column,
       // or the user provided a direct link, persist it in `qr_code_url` instead of the missing column.
@@ -382,43 +381,27 @@ export const Contests: React.FC = () => {
       const result = await DatabaseService.createContest(contestPayload);
       console.log('Contest created successfully:', result);
       
-      // If the creator provided a WhatsApp number, prefer saving a wa.me link as the qr_code_url
-      if (contestData.whatsappNumber) {
-        try {
-          // Normalize number: remove non-digit characters (keep country code)
-          const normalized = (contestData.whatsappNumber || '').toString().replace(/[^0-9]/g, '');
-          // Build a welcome message that includes the created contest's name
-          const welcomeMsg = `Welcome to \"${result.name}\"`;
-          const message = `?text=${encodeURIComponent(welcomeMsg)}`;
-          const waLink = `https://wa.me/${normalized}${message}`;
-          console.log('Saving WhatsApp wa.me link as qr_code_url:', waLink);
+      // Persist wa.me link as qr_code_url (use provided number or fallback to default)
+      try {
+        const defaultNumber = '15550617327';
+        const numberToUse = (contestData.whatsappNumber && contestData.whatsappNumber.toString().replace(/[^0-9]/g, '')) || defaultNumber;
+        const welcomeMsg = `Welcome to \"${result.name}\"`;
+        const message = `?text=${encodeURIComponent(welcomeMsg)}`;
+        const waLink = `https://wa.me/${numberToUse}${message}`;
+        console.log('Saving WhatsApp wa.me link as qr_code_url:', waLink);
 
-          await DatabaseService.updateContest(result.contest_id, {
-            qr_code_url: waLink
-          });
-        } catch (waErr) {
-          console.error('Failed to save WhatsApp link to contest, falling back to QR image generation:', waErr);
-          // fallback to image generation if saving wa.me fails
-          try {
-            const qrCodeUrl = await generateAndUploadQRCode(result.contest_id, result.name);
-            console.log('QR Code generated and uploaded (fallback):', qrCodeUrl);
-            await DatabaseService.updateContest(result.contest_id, { qr_code_url: qrCodeUrl });
-          } catch (qrError) {
-            console.error('Error generating QR code in fallback:', qrError);
-          }
-        }
-      } else {
-        // No WhatsApp number provided — generate and upload QR image as before
+        await DatabaseService.updateContest(result.contest_id, {
+          qr_code_url: waLink
+        });
+      } catch (waErr) {
+        console.error('Failed to save WhatsApp link to contest, falling back to QR image generation:', waErr);
+        // fallback to image generation if saving wa.me fails
         try {
           const qrCodeUrl = await generateAndUploadQRCode(result.contest_id, result.name);
-          console.log('QR Code generated and uploaded:', qrCodeUrl);
-          // Update contest with QR code URL
-          await DatabaseService.updateContest(result.contest_id, {
-            qr_code_url: qrCodeUrl
-          });
+          console.log('QR Code generated and uploaded (fallback):', qrCodeUrl);
+          await DatabaseService.updateContest(result.contest_id, { qr_code_url: qrCodeUrl });
         } catch (qrError) {
-          console.error('Error generating QR code:', qrError);
-          // Don't fail the whole operation if QR generation fails
+          console.error('Error generating QR code in fallback:', qrError);
         }
       }
       
