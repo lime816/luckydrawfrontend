@@ -257,14 +257,17 @@ export class SupabaseService {
       if (resp.ok) {
         const payload = await resp.json();
         if (payload.success) return { draw: payload.draw, winners: payload.winners };
-        // If backend responded but signalled failure, fallthrough to client-side implementation
-        console.warn('Backend draw execution failed, falling back to client-side:', payload.error || payload);
+        // If backend responded but signalled failure, log details and fall back to client-side implementation
+        console.error('Backend draw execution returned success=false:', payload.error || payload);
+        console.error('Full backend payload:', payload);
       } else {
-        console.warn('Backend draw endpoint returned non-ok status, falling back to client-side:', resp.status);
+        let bodyText = '';
+        try { bodyText = await resp.text(); } catch(e) { /* ignore */ }
+        console.error('Backend draw endpoint returned non-ok status, falling back to client-side:', resp.status, bodyText);
       }
     } catch (err) {
       // network/connection error talking to backend — fallback to client-side logic
-      console.warn('Could not call backend draw endpoint, falling back to client-side executeRandomDraw:', err);
+      console.error('Could not call backend draw endpoint, falling back to client-side executeRandomDraw:', err);
     }
     // Get validated participants
     const participants = await this.getValidatedParticipants(contestId);
