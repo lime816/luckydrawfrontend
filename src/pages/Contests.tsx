@@ -339,9 +339,13 @@ export const Contests: React.FC = () => {
         approval_status: isSuperAdmin ? 'APPROVED' : 'PENDING', // Non-superadmin creates pending contests
         // Record who created this contest
         created_by: user?.id ? Number(user.id) : null,
-        // Include WhatsApp fields if provided so they are persisted on create
+        // Include WhatsApp number if provided
         whatsapp_number: contestData.whatsappNumber || null,
-        whatsapp_message: contestData.whatsappMessage || null,
+        // Only persist whatsapp_message when it's a plain message (not a URL). If the user pasted a wa.me link
+        // we will store the link in `qr_code_url` instead and avoid saving it into whatsapp_message.
+        whatsapp_message: (contestData.whatsappMessage && !/(https?:\/\/|wa\.me)/i.test(contestData.whatsappMessage))
+          ? contestData.whatsappMessage
+          : null,
       };
       
       // Don't include is_active in payload until column is added to database
