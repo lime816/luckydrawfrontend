@@ -18,6 +18,8 @@ import {
 } from 'chart.js';
 import { formatNumber } from '../utils/helpers';
 import { AnalyticsService } from '../services/analyticsService';
+import { supabase } from '../lib/supabase-db';
+import { formatDate } from '../utils/helpers';
 import toast from 'react-hot-toast';
 
 ChartJS.register(
@@ -36,9 +38,45 @@ ChartJS.register(
 export const Analytics: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState<any>(null);
+  const [timeBuckets, setTimeBuckets] = useState<any[]>([]);
+  const [claimStats, setClaimStats] = useState<any>(null);
 
   useEffect(() => {
     loadAnalytics();
+    // realtime subscriptions
+    const pChannel = supabase
+      .channel('public:participants')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'participants' }, () => {
+        refreshDetailedAnalytics();
+      })
+      .subscribe();
+
+    const wChannel = supabase
+      .channel('public:winners')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'winners' }, () => {
+        refreshDetailedAnalytics();
+      })
+      .subscribe();
+
+    const prChannel = supabase
+      .channel('public:prizes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'prizes' }, () => {
+        refreshDetailedAnalytics();
+      })
+      .subscribe();
+
+    // initial detailed analytics
+    refreshDetailedAnalytics();
+
+    return () => {
+      try {
+        supabase.removeChannel(pChannel);
+        supabase.removeChannel(wChannel);
+        supabase.removeChannel(prChannel);
+      } catch (e) {
+        // ignore
+      }
+    };
   }, []);
 
   const loadAnalytics = async () => {
@@ -51,6 +89,87 @@ export const Analytics: React.FC = () => {
       toast.error('Failed to load analytics data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Refresh the detailed pieces shown in Participation by Time and Prize Claim Statistics
+  const refreshDetailedAnalytics = async () => {
+    try {
+      // participants time buckets
+      const { data: participants, error: pErr } = await supabase
+        .from('participants')
+        .select('participant_id, entry_timestamp, created_at');
+
+      if (pErr) {
+        console.warn('Could not fetch participants for analytics:', pErr);
+      }
+
+      const buckets = [
+        { key: 'morning', label: 'Morning (6 AM - 12 PM)', count: 0 },
+        { key: 'afternoon', label: 'Afternoon (12 PM - 6 PM)', count: 0 },
+        { key: 'evening', label: 'Evening (6 PM - 12 AM)', count: 0 },
+        { key: 'night', label: 'Night (12 AM - 6 AM)', count: 0 },
+      ];
+
+      const totalParticipants = (participants || []).length;
+      (participants || []).forEach((p: any) => {
+        const ts = p.entry_timestamp || p.created_at;
+        if (!ts) return;
+        const hr = new Date(ts).getHours();
+        if (hr >= 6 && hr < 12) buckets[0].count++;
+        else if (hr >= 12 && hr < 18) buckets[1].count++;
+        else if (hr >= 18 && hr < 24) buckets[2].count++;
+        else buckets[3].count++;
+      });
+
+      // compute percentages
+      const bucketsWithPct = buckets.map(b => ({
+        ...b,
+        percentage: totalParticipants ? Math.round((b.count / totalParticipants) * 100) : 0,
+      }));
+
+      setTimeBuckets(bucketsWithPct);
+
+      // prize claim statistics
+      const { data: winners, error: wErr } = await supabase
+        .from('winners')
+        .select('winner_id, prize_status, updated_at, draw:draws(executed_at)');
+
+      if (wErr) {
+        console.warn('Could not fetch winners for analytics:', wErr);
+      }
+
+      const totalWinners = (winners || []).length;
+      const claimed = (winners || []).filter((w: any) => w.prize_status === 'CLAIMED').length;
+      const pending = (winners || []).filter((w: any) => w.prize_status === 'PENDING').length;
+      const other = totalWinners - claimed - pending;
+
+      // average claim time in days: use updated_at (when status changed) minus draw.executed_at
+      const claimDurations: number[] = [];
+      (winners || []).forEach((w: any) => {
+        if (w.prize_status === 'CLAIMED' && w.updated_at && w.draw && w.draw.executed_at) {
+          const claimedAt = new Date(w.updated_at).getTime();
+          const executedAt = new Date(w.draw.executed_at).getTime();
+          if (!isNaN(claimedAt) && !isNaN(executedAt) && claimedAt >= executedAt) {
+            claimDurations.push((claimedAt - executedAt) / (1000 * 60 * 60 * 24));
+          }
+        }
+      });
+
+      const avgClaimDays = claimDurations.length ? (claimDurations.reduce((s, v) => s + v, 0) / claimDurations.length) : null;
+
+      setClaimStats({
+        total: totalWinners,
+        claimed,
+        pending,
+        unclaimed: other,
+        claimedPct: totalWinners ? Math.round((claimed / totalWinners) * 100) : 0,
+        pendingPct: totalWinners ? Math.round((pending / totalWinners) * 100) : 0,
+        unclaimedPct: totalWinners ? Math.round((other / totalWinners) * 100) : 0,
+        avgClaimDays,
+      });
+    } catch (e) {
+      console.warn('Error refreshing detailed analytics:', e);
     }
   };
 
@@ -280,15 +399,15 @@ export const Analytics: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card title="Participation by Time">
           <div className="space-y-3">
-            {[
-              { time: 'Morning (6 AM - 12 PM)', count: 423, percentage: 23 },
-              { time: 'Afternoon (12 PM - 6 PM)', count: 856, percentage: 46 },
-              { time: 'Evening (6 PM - 12 AM)', count: 512, percentage: 28 },
-              { time: 'Night (12 AM - 6 AM)', count: 56, percentage: 3 },
-            ].map((slot, index) => (
+            {(timeBuckets.length ? timeBuckets : [
+              { label: 'Morning (6 AM - 12 PM)', count: 0, percentage: 0 },
+              { label: 'Afternoon (12 PM - 6 PM)', count: 0, percentage: 0 },
+              { label: 'Evening (6 PM - 12 AM)', count: 0, percentage: 0 },
+              { label: 'Night (12 AM - 6 AM)', count: 0, percentage: 0 },
+            ]).map((slot: any, index: number) => (
               <div key={index}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-700">{slot.time}</span>
+                  <span className="text-sm text-gray-700">{slot.label}</span>
                   <span className="text-sm font-medium text-gray-900">
                     {formatNumber(slot.count)} ({slot.percentage}%)
                   </span>
@@ -308,20 +427,20 @@ export const Analytics: React.FC = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
               <span className="text-sm text-gray-700">Claimed</span>
-              <span className="text-lg font-bold text-green-600">87%</span>
+              <span className="text-lg font-bold text-green-600">{claimStats ? `${claimStats.claimedPct}%` : '—'}</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
               <span className="text-sm text-gray-700">Pending</span>
-              <span className="text-lg font-bold text-yellow-600">8%</span>
+              <span className="text-lg font-bold text-yellow-600">{claimStats ? `${claimStats.pendingPct}%` : '—'}</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
               <span className="text-sm text-gray-700">Unclaimed</span>
-              <span className="text-lg font-bold text-red-600">5%</span>
+              <span className="text-lg font-bold text-red-600">{claimStats ? `${claimStats.unclaimedPct}%` : '—'}</span>
             </div>
             <div className="pt-3 border-t border-gray-200">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Average Claim Time</span>
-                <span className="text-lg font-bold text-gray-900">2.3 days</span>
+                <span className="text-lg font-bold text-gray-900">{claimStats && claimStats.avgClaimDays != null ? `${claimStats.avgClaimDays.toFixed(1)} days` : '—'}</span>
               </div>
             </div>
           </div>
