@@ -18,6 +18,7 @@ import { formatNumber, formatDate } from '../utils/helpers';
 import { Contest, ContestStatus } from '../types';
 import { DatabaseService } from '../services/database';
 import { useAuthStore } from '../store/authStore';
+import { supabase } from '../lib/supabase-db';
 
 ChartJS.register(
   CategoryScale,
@@ -54,8 +55,48 @@ export const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Real-time quick stats state
+  const [totalWinners, setTotalWinners] = useState<number>(0);
+  const [claimedWinners, setClaimedWinners] = useState<number>(0);
+  const [validatedParticipants, setValidatedParticipants] = useState<number>(0);
+  const [totalPrizes, setTotalPrizes] = useState<number>(0);
+
   useEffect(() => {
     loadDashboardData();
+    // subscribe to realtime changes to keep Quick Stats fresh
+    const participantsChannel = supabase
+      .channel('public:participants')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'participants' }, () => {
+        refreshQuickStats();
+      })
+      .subscribe();
+
+    const winnersChannel = supabase
+      .channel('public:winners')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'winners' }, () => {
+        refreshQuickStats();
+      })
+      .subscribe();
+
+    const prizesChannel = supabase
+      .channel('public:prizes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'prizes' }, () => {
+        refreshQuickStats();
+      })
+      .subscribe();
+
+    // initial quick stats load
+    refreshQuickStats();
+
+    return () => {
+      try {
+        supabase.removeChannel(participantsChannel);
+        supabase.removeChannel(winnersChannel);
+        supabase.removeChannel(prizesChannel);
+      } catch (e) {
+        // ignore
+      }
+    };
   }, []);
 
   const loadDashboardData = async () => {
@@ -105,6 +146,8 @@ export const Dashboard: React.FC = () => {
         pendingPrizes: 0, // Will be calculated when we have prize data
       });
       
+      // also update quick stats derived values
+      refreshQuickStats();
     } catch (err) {
       console.error('Error loading dashboard data:', err);
       setError('Failed to load dashboard data');
@@ -155,6 +198,35 @@ export const Dashboard: React.FC = () => {
       }]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Refresh quick stats from the DB (counts and simple aggregations)
+  const refreshQuickStats = async () => {
+    try {
+      // participants
+      const { data: participants } = await supabase.from('participants').select('participant_id,validated');
+      const totalParticipants = (participants || []).length;
+      const validated = (participants || []).filter((p: any) => p.validated).length;
+
+      // winners
+      const { data: winners } = await supabase.from('winners').select('winner_id,prize_status');
+      const totalW = (winners || []).length;
+      const claimed = (winners || []).filter((w: any) => w.prize_status === 'CLAIMED').length;
+
+      // prizes
+      const { data: prizes } = await supabase.from('prizes').select('quantity');
+      const totalP = (prizes || []).reduce((sum: number, r: any) => sum + (r.quantity || 0), 0);
+
+      setValidatedParticipants(validated);
+      setTotalWinners(totalW);
+      setClaimedWinners(claimed);
+      setTotalPrizes(totalP);
+
+      // Also update top-level stats.totalParticipants if inconsistent
+      setStats(prev => ({ ...prev, totalParticipants: totalParticipants }));
+    } catch (e) {
+      console.warn('Could not refresh quick stats:', e);
     }
   };
 
@@ -321,19 +393,19 @@ export const Dashboard: React.FC = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="text-sm text-gray-600">Avg. Participants/Contest</span>
-              <span className="font-semibold text-gray-900">77</span>
+              <span className="font-semibold text-gray-900">{stats.totalContests ? Math.round(stats.totalParticipants / Math.max(1, stats.totalContests)) : 0}</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="text-sm text-gray-600">Completion Rate</span>
-              <span className="font-semibold text-green-600">94%</span>
+              <span className="font-semibold text-green-600">{stats.totalParticipants ? Math.round((validatedParticipants / Math.max(1, stats.totalParticipants)) * 100) : 0}%</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="text-sm text-gray-600">Prize Claim Rate</span>
-              <span className="font-semibold text-blue-600">87%</span>
+              <span className="font-semibold text-blue-600">{totalWinners ? Math.round((claimedWinners / Math.max(1, totalWinners)) * 100) : 0}%</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="text-sm text-gray-600">Engagement Rate</span>
-              <span className="font-semibold text-purple-600">68%</span>
+              <span className="font-semibold text-purple-600">{stats.activeContests ? Math.round((stats.totalParticipants / Math.max(1, stats.activeContests))) : 0}%</span>
             </div>
           </div>
         </Card>
