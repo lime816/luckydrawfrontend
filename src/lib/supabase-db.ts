@@ -32,7 +32,7 @@ export interface Contest {
   created_by?: number | null;
   created_at: string;
   qr_code_url?: string | null;
-  // NOTE: whatsapp_number and whatsapp_message columns may not exist in DB schema; avoid writing them from client
+  
 }
 
 export interface Participant {
