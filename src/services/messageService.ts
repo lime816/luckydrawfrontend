@@ -40,6 +40,28 @@ export class MessageService {
       .single();
 
     if (error) throw error;
+    // If this is a WhatsApp message, call backend to perform the actual send via service role
+    try {
+      if (request.type === 'WHATSAPP') {
+        const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001') + '/api/whatsapp/send-text';
+        // POST phoneNumber and text to backend
+        await fetch(backendUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phoneNumber: request.recipient, text: request.content })
+        }).then(async (resp) => {
+          if (!resp.ok) {
+            const txt = await resp.text().catch(() => '');
+            console.warn('Backend send-text returned non-OK:', resp.status, txt);
+          }
+        }).catch((e) => {
+          console.warn('Failed to call backend send-text endpoint:', (e as any)?.message || e);
+        });
+      }
+    } catch (e) {
+      console.warn('Error while attempting to send WhatsApp via backend:', (e as any)?.message || e);
+    }
+
     return data;
   }
 
