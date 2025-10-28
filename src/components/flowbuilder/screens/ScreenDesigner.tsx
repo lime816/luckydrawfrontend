@@ -22,7 +22,7 @@ export default function ScreenDesigner({ flowName, setFlowName, customMessage, s
       {/* Components Hamburger Menu Button - Always visible */}
       <button
         onClick={() => setShowMobilePalette(!showMobilePalette)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110"
+        className="fixed bottom-6 right-6 z-[60] w-14 h-14 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110"
         title="Toggle Components Menu"
       >
         {showMobilePalette ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -38,7 +38,7 @@ export default function ScreenDesigner({ flowName, setFlowName, customMessage, s
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowMobilePalette(false)}
-              className="fixed inset-0 bg-black/50 z-40"
+              className="fixed inset-0 bg-black/50 z-[55]"
             />
             
             {/* Palette Sidebar */}
@@ -47,7 +47,7 @@ export default function ScreenDesigner({ flowName, setFlowName, customMessage, s
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -300, opacity: 0 }}
               transition={{ type: "spring", damping: 25 }}
-              className="fixed left-0 top-0 bottom-0 w-80 bg-white shadow-2xl z-50 overflow-y-auto"
+              className="fixed left-0 top-0 bottom-0 w-80 max-w-[85vw] sm:max-w-sm bg-white shadow-2xl z-[60] overflow-y-auto"
             >
               <div className="p-6 space-y-6">
                 {/* Header */}
