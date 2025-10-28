@@ -16,24 +16,24 @@ export const Input: React.FC<InputProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
           {label}
         </label>
       )}
       <div className="relative">
         {icon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <div className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
             {icon}
           </div>
         )}
         <input
-          className={`input-field ${icon ? 'pl-10' : ''} ${
+          className={`input-field ${icon ? 'pl-9 sm:pl-10' : ''} ${
             error ? 'border-red-500 focus:ring-red-500' : ''
           } ${className}`}
           {...props}
         />
       </div>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs sm:text-sm text-red-600">{error}</p>}
     </div>
   );
 };
@@ -52,17 +52,17 @@ export const TextArea: React.FC<TextAreaProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
           {label}
         </label>
       )}
       <textarea
-        className={`input-field resize-none ${
+        className={`input-field resize-none min-h-[80px] ${
           error ? 'border-red-500 focus:ring-red-500' : ''
         } ${className}`}
         {...props}
       />
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs sm:text-sm text-red-600">{error}</p>}
     </div>
   );
 };
@@ -83,12 +83,12 @@ export const Select: React.FC<SelectProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
           {label}
         </label>
       )}
       <select
-        className={`input-field ${
+        className={`input-field cursor-pointer ${
           error ? 'border-red-500 focus:ring-red-500' : ''
         } ${className}`}
         {...props}
@@ -99,7 +99,7 @@ export const Select: React.FC<SelectProps> = ({
           </option>
         ))}
       </select>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs sm:text-sm text-red-600">{error}</p>}
     </div>
   );
 };
