@@ -433,7 +433,7 @@ export const Dashboard: React.FC = () => {
                 <div className="flex items-center gap-1 mt-2">
                   <TrendingUp className="w-4 h-4 text-green-600" />
                   <span className="text-sm text-green-600 font-medium">{stat.change}</span>
-                  <span className="text-sm text-gray-500">vs last month</span>
+                  {/* <span className="text-sm text-gray-500">vs last month</span> */}
                 </div>
               </div>
               <div className={`${stat.color} p-3 rounded-lg text-white`}>{stat.icon}</div>
