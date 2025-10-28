@@ -328,28 +328,28 @@ export const Dashboard: React.FC = () => {
       value: stats.totalContests,
       icon: <Trophy className="w-6 h-6" />,
       color: 'bg-blue-500',
-      change: '+12%',
+      // change: '+12%',
     },
     {
       title: 'Active Contests',
       value: stats.activeContests,
       icon: <Clock className="w-6 h-6" />,
       color: 'bg-green-500',
-      change: '+5%',
+      // change: '+5%',
     },
     {
       title: 'Total Participants',
       value: stats.totalParticipants,
       icon: <Users className="w-6 h-6" />,
       color: 'bg-purple-500',
-      change: '+23%',
+      // change: '+23%',
     },
     {
       title: 'Total Winners',
       value: stats.totalWinners,
       icon: <Award className="w-6 h-6" />,
       color: 'bg-yellow-500',
-      change: '+8%',
+      change: '',
     },
   ];
 
