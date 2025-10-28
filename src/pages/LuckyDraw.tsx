@@ -540,26 +540,7 @@ export const LuckyDraw: React.FC = () => {
             </div>
           </Card>
 
-          <Card title="Security Features">
-            <div className="space-y-3 text-sm">
-              <div className="flex items-start gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></div>
-                <p className="text-gray-700">Cryptographically secure random selection</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></div>
-                <p className="text-gray-700">Audit trail for all draw activities</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></div>
-                <p className="text-gray-700">Duplicate entry prevention</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></div>
-                <p className="text-gray-700">Tamper-proof result recording</p>
-              </div>
-            </div>
-          </Card>
+      
         </div>
       </div>
 
