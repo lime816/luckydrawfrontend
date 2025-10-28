@@ -287,8 +287,7 @@ export const Analytics: React.FC = () => {
               <p className="text-sm text-gray-600 mb-1">Total Contests</p>
               <p className="text-3xl font-bold text-gray-900">{analytics.totalContests}</p>
               <div className="flex items-center gap-1 mt-2">
-                <TrendingUp className="w-4 h-4 text-green-600" />
-                <span className="text-sm text-green-600 font-medium">+12%</span>
+    
               </div>
             </div>
             <div className="p-3 bg-blue-100 rounded-lg">
@@ -303,8 +302,7 @@ export const Analytics: React.FC = () => {
               <p className="text-sm text-gray-600 mb-1">Total Participants</p>
               <p className="text-3xl font-bold text-gray-900">{formatNumber(analytics.totalParticipants)}</p>
               <div className="flex items-center gap-1 mt-2">
-                <TrendingUp className="w-4 h-4 text-green-600" />
-                <span className="text-sm text-green-600 font-medium">+23%</span>
+               
               </div>
             </div>
             <div className="p-3 bg-green-100 rounded-lg">
@@ -319,8 +317,7 @@ export const Analytics: React.FC = () => {
               <p className="text-sm text-gray-600 mb-1">Total Prizes</p>
               <p className="text-3xl font-bold text-gray-900">{formatNumber(analytics.totalPrizes)}</p>
               <div className="flex items-center gap-1 mt-2">
-                <TrendingUp className="w-4 h-4 text-green-600" />
-                <span className="text-sm text-green-600 font-medium">+8%</span>
+                
               </div>
             </div>
             <div className="p-3 bg-purple-100 rounded-lg">
@@ -335,8 +332,7 @@ export const Analytics: React.FC = () => {
               <p className="text-sm text-gray-600 mb-1">Total Draws</p>
               <p className="text-3xl font-bold text-gray-900">{analytics.totalDraws}</p>
               <div className="flex items-center gap-1 mt-2">
-                <TrendingUp className="w-4 h-4 text-green-600" />
-                <span className="text-sm text-green-600 font-medium">+5%</span>
+                
               </div>
             </div>
             <div className="p-3 bg-yellow-100 rounded-lg">
@@ -397,31 +393,8 @@ export const Analytics: React.FC = () => {
 
       {/* Detailed Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card title="Participation by Time">
-          <div className="space-y-3">
-            {(timeBuckets.length ? timeBuckets : [
-              { label: 'Morning (6 AM - 12 PM)', count: 0, percentage: 0 },
-              { label: 'Afternoon (12 PM - 6 PM)', count: 0, percentage: 0 },
-              { label: 'Evening (6 PM - 12 AM)', count: 0, percentage: 0 },
-              { label: 'Night (12 AM - 6 AM)', count: 0, percentage: 0 },
-            ]).map((slot: any, index: number) => (
-              <div key={index}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-700">{slot.label}</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {formatNumber(slot.count)} ({slot.percentage}%)
-                  </span>
-                </div>
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary-600 rounded-full"
-                    style={{ width: `${slot.percentage}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
+        
+             
 
         <Card title="Prize Claim Statistics">
           <div className="space-y-4">
@@ -437,12 +410,7 @@ export const Analytics: React.FC = () => {
               <span className="text-sm text-gray-700">Unclaimed</span>
               <span className="text-lg font-bold text-red-600">{claimStats ? `${claimStats.unclaimedPct}%` : '—'}</span>
             </div>
-            <div className="pt-3 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Average Claim Time</span>
-                <span className="text-lg font-bold text-gray-900">{claimStats && claimStats.avgClaimDays != null ? `${claimStats.avgClaimDays.toFixed(1)} days` : '—'}</span>
-              </div>
-            </div>
+            
           </div>
         </Card>
       </div>

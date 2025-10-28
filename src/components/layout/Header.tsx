@@ -224,38 +224,40 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
-      <div className="px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-30 w-full flex-shrink-0">
+      <div className="w-full max-w-full px-3 sm:px-4 lg:px-6 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-4">
         {/* Mobile Menu Button */}
         {onMenuClick && (
           <button
             onClick={onMenuClick}
-            className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+            aria-label="Open menu"
           >
-            <Menu className="w-6 h-6" />
+            <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         )}
 
 
         {/* Right Section */}
-        <div className="flex items-center gap-2 sm:gap-4 ml-auto">
+        <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 ml-auto">
           {/* Notifications */}
           <NotificationCenter userId={user?.id ? Number(user.id) : undefined} />
 
           {/* User Menu */}
-          <div className="relative">
+          <div className="relative flex-shrink-0">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="User menu"
             >
-              <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-white" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="text-left hidden md:block">
-                <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                <p className="text-xs text-gray-500">{user?.role}</p>
+                <p className="text-sm font-medium text-gray-900 truncate max-w-[120px]">{user?.name}</p>
+                <p className="text-xs text-gray-500 truncate">{user?.role}</p>
               </div>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
+              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 hidden sm:block" />
             </button>
 
             {showUserMenu && (
@@ -263,6 +265,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 <div
                   className="fixed inset-0 z-10"
                   onClick={() => setShowUserMenu(false)}
+                  aria-hidden="true"
                 />
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-20">
                   <button

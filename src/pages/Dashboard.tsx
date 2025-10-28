@@ -328,28 +328,28 @@ export const Dashboard: React.FC = () => {
       value: stats.totalContests,
       icon: <Trophy className="w-6 h-6" />,
       color: 'bg-blue-500',
-      change: '+12%',
+      // change: '+12%',
     },
     {
       title: 'Active Contests',
       value: stats.activeContests,
       icon: <Clock className="w-6 h-6" />,
       color: 'bg-green-500',
-      change: '+5%',
+      // change: '+5%',
     },
     {
       title: 'Total Participants',
       value: stats.totalParticipants,
       icon: <Users className="w-6 h-6" />,
       color: 'bg-purple-500',
-      change: '+23%',
+      // change: '+23%',
     },
     {
       title: 'Total Winners',
       value: stats.totalWinners,
       icon: <Award className="w-6 h-6" />,
       color: 'bg-yellow-500',
-      change: '+8%',
+      change: '',
     },
   ];
 
@@ -433,7 +433,7 @@ export const Dashboard: React.FC = () => {
                 <div className="flex items-center gap-1 mt-2">
                   <TrendingUp className="w-4 h-4 text-green-600" />
                   <span className="text-sm text-green-600 font-medium">{stat.change}</span>
-                  <span className="text-sm text-gray-500">vs last month</span>
+                  {/* <span className="text-sm text-gray-500">vs last month</span> */}
                 </div>
               </div>
               <div className={`${stat.color} p-3 rounded-lg text-white`}>{stat.icon}</div>
