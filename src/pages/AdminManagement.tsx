@@ -652,7 +652,7 @@ export const AdminManagement: React.FC = () => {
                     className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-                <div className="flex gap-2 flex-shrink-0">
+                {/* <div className="flex gap-2 flex-shrink-0">
                   <button className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white hover:bg-gray-50 transition-colors">
                     <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     <span className="hidden sm:inline">Filter</span>
@@ -661,7 +661,7 @@ export const AdminManagement: React.FC = () => {
                     <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     <span className="hidden sm:inline">Export</span>
                   </button>
-                </div>
+                </div> */}
               </div>
 
               {/* Users Table */}
