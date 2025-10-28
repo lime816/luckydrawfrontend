@@ -20,7 +20,7 @@ import { FlowBuilder } from './pages/FlowBuilder';
 import { ClaimPrize } from './pages/ClaimPrize';
 import { ScratchCardPage } from './pages/ScratchCardPage';
 import { PendingApprovals } from './pages/PendingApprovals';
-
+//hi
 // Component to handle welcome modal
 function WelcomeModalHandler() {
   const [showWelcome, setShowWelcome] = useState(false);
