@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { WelcomeModal } from './components/WelcomeModal';
+import { useAuthStore } from './store/authStore';
 
 // Pages
 import { Login } from './pages/auth/Login';
@@ -49,6 +50,8 @@ function WelcomeModalHandler() {
 }
 
 function App() {
+  const { isAuthenticated } = useAuthStore();
+
   return (
     <Router>
       <Toaster />
@@ -67,7 +70,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="/login" replace />} />
+          <Route index element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="contests" element={<Contests />} />
           <Route path="pending-approvals" element={<PendingApprovals />} />
