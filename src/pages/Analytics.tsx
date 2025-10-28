@@ -410,12 +410,7 @@ export const Analytics: React.FC = () => {
               <span className="text-sm text-gray-700">Unclaimed</span>
               <span className="text-lg font-bold text-red-600">{claimStats ? `${claimStats.unclaimedPct}%` : '—'}</span>
             </div>
-            <div className="pt-3 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Average Claim Time</span>
-                <span className="text-lg font-bold text-gray-900">{claimStats && claimStats.avgClaimDays != null ? `${claimStats.avgClaimDays.toFixed(1)} days` : '—'}</span>
-              </div>
-            </div>
+            
           </div>
         </Card>
       </div>
