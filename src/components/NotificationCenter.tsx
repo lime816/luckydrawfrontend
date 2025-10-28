@@ -297,15 +297,15 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ userId }
       {/* Bell Icon */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+        className="relative p-1.5 sm:p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
         aria-label="Notifications"
       >
-        <Bell size={24} />
+        <Bell className="w-5 h-5 sm:w-6 sm:h-6" />
         {unreadCount > 0 && (
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center"
+            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center"
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </motion.span>
@@ -319,29 +319,29 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ userId }
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-sm md:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[600px] overflow-hidden flex flex-col left-4 right-4 mx-auto md:left-auto md:mx-0"
+            className="fixed md:absolute right-2 md:right-0 mt-2 w-[calc(100vw-1rem)] sm:w-96 max-w-sm bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[80vh] md:max-h-[600px] overflow-hidden flex flex-col"
           >
             {/* Header */}
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">Notifications</h3>
+            <div className="p-3 sm:p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800">Notifications</h3>
                 {unreadCount > 0 && (
                   <p className="text-xs text-gray-500">{unreadCount} unread</p>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                    className="text-xs text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap"
                   >
-                    Mark all read
+                    Mark all
                   </button>
                 )}
                 {notifications.length > 0 && (
                   <button
                     onClick={clearAll}
-                    className="text-xs text-red-600 hover:text-red-700 font-medium"
+                    className="text-xs text-red-600 hover:text-red-700 font-medium whitespace-nowrap"
                   >
                     Clear all
                   </button>
@@ -352,9 +352,9 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ userId }
             {/* Notifications List */}
             <div className="overflow-y-auto flex-1">
               {notifications.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  <Bell size={48} className="mx-auto mb-2 text-gray-300" />
-                  <p>No notifications yet</p>
+                <div className="p-6 sm:p-8 text-center text-gray-500">
+                  <Bell size={40} className="mx-auto mb-2 text-gray-300 sm:w-12 sm:h-12" />
+                  <p className="text-sm sm:text-base">No notifications yet</p>
                   <p className="text-xs mt-1">We'll notify you about important updates</p>
                 </div>
               ) : (
@@ -363,42 +363,42 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ userId }
                     key={notification.id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className={`p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                    className={`p-3 sm:p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
                       !notification.read ? getPriorityColor(notification.priority) : ''
                     }`}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-2 sm:gap-3">
                       {/* Icon */}
-                      <div className="flex-shrink-0 mt-1">
+                      <div className="flex-shrink-0 mt-0.5 sm:mt-1">
                         {getNotificationIcon(notification.type)}
                       </div>
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
-                          <h4 className="font-semibold text-gray-800 text-sm">
+                          <h4 className="font-semibold text-gray-800 text-xs sm:text-sm">
                             {notification.title}
                           </h4>
                           <button
                             onClick={() => deleteNotification(notification.id)}
                             className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
                           >
-                            <X size={16} />
+                            <X className="w-4 h-4" />
                           </button>
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-xs sm:text-sm text-gray-600 mt-1">
                           {notification.message}
                         </p>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs text-gray-400">
+                        <div className="flex items-center justify-between mt-2 gap-2">
+                          <span className="text-xs text-gray-400 truncate">
                             {formatDistanceToNow(notification.timestamp, { addSuffix: true })}
                           </span>
                           {!notification.read && (
                             <button
                               onClick={() => markAsRead(notification.id)}
-                              className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                              className="text-xs text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap"
                             >
-                              Mark as read
+                              Mark read
                             </button>
                           )}
                         </div>

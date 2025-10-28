@@ -365,11 +365,11 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Welcome back! Here's what's happening today.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Welcome back! Here's what's happening today.</p>
       </div>
 
       {/* Error Display */}
@@ -423,52 +423,52 @@ export const Dashboard: React.FC = () => {
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {statCards.map((stat, index) => (
           <Card key={index} hover>
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
-                <p className="text-3xl font-bold text-gray-900">{formatNumber(stat.value)}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-gray-600 mb-1 truncate">{stat.title}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900">{formatNumber(stat.value)}</p>
                 <div className="flex items-center gap-1 mt-2">
-                  <TrendingUp className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-green-600 font-medium">{stat.change}</span>
+                  <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+                  <span className="text-xs sm:text-sm text-green-600 font-medium">{stat.change}</span>
                   {/* <span className="text-sm text-gray-500">vs last month</span> */}
                 </div>
               </div>
-              <div className={`${stat.color} p-3 rounded-lg text-white`}>{stat.icon}</div>
+              <div className={`${stat.color} p-2 sm:p-3 rounded-lg text-white flex-shrink-0`}>{stat.icon}</div>
             </div>
           </Card>
         ))}
       </div>
 
       {/* Charts and Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Participation Trend Chart */}
         <Card className="lg:col-span-2" title="Participation Trend" subtitle="Last 7 days">
-          <div className="h-64">
+          <div className="h-48 sm:h-64">
             <Line data={dynamicChartData} options={chartOptions} />
           </div>
         </Card>
 
         {/* Quick Stats */}
         <Card title="Quick Stats">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600">Avg. Participants/Contest</span>
-              <span className="font-semibold text-gray-900">{stats.totalContests ? Math.round(stats.totalParticipants / Math.max(1, stats.totalContests)) : 0}</span>
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
+              <span className="text-xs sm:text-sm text-gray-600">Avg. Participants/Contest</span>
+              <span className="font-semibold text-gray-900 text-sm sm:text-base">{stats.totalContests ? Math.round(stats.totalParticipants / Math.max(1, stats.totalContests)) : 0}</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600">Completion Rate</span>
-              <span className="font-semibold text-green-600">{stats.totalParticipants ? Math.round((validatedParticipants / Math.max(1, stats.totalParticipants)) * 100) : 0}%</span>
+            <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
+              <span className="text-xs sm:text-sm text-gray-600">Completion Rate</span>
+              <span className="font-semibold text-green-600 text-sm sm:text-base">{stats.totalParticipants ? Math.round((validatedParticipants / Math.max(1, stats.totalParticipants)) * 100) : 0}%</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600">Prize Claim Rate</span>
-              <span className="font-semibold text-blue-600">{totalWinners ? Math.round((claimedWinners / Math.max(1, totalWinners)) * 100) : 0}%</span>
+            <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
+              <span className="text-xs sm:text-sm text-gray-600">Prize Claim Rate</span>
+              <span className="font-semibold text-blue-600 text-sm sm:text-base">{totalWinners ? Math.round((claimedWinners / Math.max(1, totalWinners)) * 100) : 0}%</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600">Engagement Rate</span>
-              <span className="font-semibold text-purple-600">{stats.activeContests ? Math.round((stats.totalParticipants / Math.max(1, stats.activeContests))) : 0}%</span>
+            <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
+              <span className="text-xs sm:text-sm text-gray-600">Engagement Rate</span>
+              <span className="font-semibold text-purple-600 text-sm sm:text-base">{stats.activeContests ? Math.round((stats.totalParticipants / Math.max(1, stats.activeContests))) : 0}%</span>
             </div>
           </div>
         </Card>
@@ -476,22 +476,22 @@ export const Dashboard: React.FC = () => {
 
       {/* Recent Contests */}
       <Card title="Recent Contests" subtitle="Latest contest activities">
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {recentContests.map((contest) => (
             <div
               key={contest.id}
-              className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-start sm:items-center justify-between p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-semibold text-gray-900">{contest.name}</h3>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{contest.name}</h3>
                   {getStatusBadge(contest.status)}
                 </div>
-                <p className="text-sm text-gray-600">{contest.description}</p>
-                <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                  <span>Start: {formatDate(contest.startTime, 'MMM dd, yyyy HH:mm')}</span>
-                  <span>End: {formatDate(contest.endTime, 'MMM dd, yyyy HH:mm')}</span>
-                  <span>{formatNumber(contest.totalParticipants)} participants</span>
+                <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">{contest.description}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-2 text-xs text-gray-500">
+                  <span className="truncate">Start: {formatDate(contest.startTime, 'MMM dd, yyyy HH:mm')}</span>
+                  <span className="truncate">End: {formatDate(contest.endTime, 'MMM dd, yyyy HH:mm')}</span>
+                  <span className="whitespace-nowrap">{formatNumber(contest.totalParticipants)} participants</span>
                 </div>
               </div>
             </div>
