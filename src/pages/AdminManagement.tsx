@@ -485,7 +485,7 @@ export const AdminManagement: React.FC = () => {
       icon: <Users className="w-6 h-6" />,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
-      change: '+12%',
+      // change: '+12%',
       changeType: 'increase',
     },
     {
@@ -494,7 +494,7 @@ export const AdminManagement: React.FC = () => {
       icon: <Shield className="w-6 h-6" />,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-50',
-      change: '+8%',
+      // change: '+8%',
       changeType: 'increase',
     },
     {
@@ -503,7 +503,7 @@ export const AdminManagement: React.FC = () => {
       icon: <Activity className="w-6 h-6" />,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
-      change: '+24%',
+      // change: '+24%',
       changeType: 'increase',
     },
     // {
@@ -597,7 +597,7 @@ export const AdminManagement: React.FC = () => {
                   <p className={`text-xs mt-1 ${
                     card.changeType === 'increase' ? 'text-green-600' : 'text-red-600'
                   }`}>
-                    {card.change} from last month
+                    {/* {card.change} from last month */}
                   </p>
                 )}
               </div>
