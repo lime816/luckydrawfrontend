@@ -319,7 +319,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ userId }
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[600px] overflow-hidden flex flex-col"
+            className="absolute right-0 left-0 mx-auto mt-2 w-screen max-w-xs sm:w-96 sm:left-auto sm:mx-0 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[600px] overflow-hidden flex flex-col"
           >
             {/* Header */}
             <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
