@@ -153,6 +153,29 @@ export class AdminService {
     sessionId?: string,
     status: 'SUCCESS' | 'FAILURE' | 'PENDING' = 'SUCCESS'
   ): Promise<AdminActivityLog> {
+    // Prefer server-side log insertion via backend (service role). If backend is not reachable,
+    // fall back to client-side Supabase insert (may fail due to RLS).
+    try {
+      const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001') + '/api/admins/log';
+      const resp = await fetch(backendUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_id: adminId, action, target_table: targetTable, target_id: targetId, session_id: sessionId, status })
+      });
+
+      if (resp.ok) {
+        const payload = await resp.json();
+        if (payload.success) return payload.log as AdminActivityLog;
+        console.warn('Backend log API returned success=false:', payload.error || payload);
+      } else {
+        const txt = await resp.text().catch(() => '');
+        console.warn('Backend log API responded with non-ok status, falling back to client insert:', resp.status, txt);
+      }
+    } catch (e) {
+      console.warn('Could not call backend log API, falling back to Supabase client insert:', e);
+    }
+
+    // Fallback: attempt client-side insert (may be blocked by RLS)
     const { data, error } = await supabase
       .from('admin_activity_log')
       .insert({
