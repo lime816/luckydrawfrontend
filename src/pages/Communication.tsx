@@ -23,12 +23,13 @@ export const Communication: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'send' | 'history'>('send');
   const [messageForm, setMessageForm] = useState({
-    type: 'EMAIL' as 'EMAIL' | 'SMS' | 'WHATSAPP',
+    type: 'WHATSAPP' as 'EMAIL' | 'SMS' | 'WHATSAPP',
     contest_id: '',
     recipient: '',
     content: '',
     is_bulk: false,
   });
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
 
   // Load data on component mount
   useEffect(() => {
@@ -94,12 +95,13 @@ export const Communication: React.FC = () => {
 
       // Reset form and reload data
       setMessageForm({
-        type: 'EMAIL',
+        type: 'WHATSAPP',
         contest_id: '',
         recipient: '',
         content: '',
         is_bulk: false,
       });
+      setSelectedTemplate('');
       await loadData();
     } catch (error) {
       console.error('Error sending message:', error);
@@ -191,26 +193,20 @@ export const Communication: React.FC = () => {
           <form onSubmit={handleSendMessage} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Message Type
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Message Type</label>
+                {/* Message type is fixed to WhatsApp only */}
                 <select
                   value={messageForm.type}
-                  onChange={(e) =>
-                    setMessageForm({ ...messageForm, type: e.target.value as 'EMAIL' | 'SMS' | 'WHATSAPP' })
-                  }
+                  onChange={() => { /* no-op, fixed to WhatsApp */ }}
                   className="input-field"
+                  disabled
                 >
-                  <option value="EMAIL">Email</option>
-                  <option value="SMS">SMS</option>
                   <option value="WHATSAPP">WhatsApp</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contest
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Contest</label>
                 <select
                   value={messageForm.contest_id}
                   onChange={(e) => setMessageForm({ ...messageForm, contest_id: e.target.value })}
@@ -225,6 +221,31 @@ export const Communication: React.FC = () => {
                   ))}
                 </select>
               </div>
+            </div>
+
+            {/* Templates */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Template</label>
+              <select
+                value={selectedTemplate}
+                onChange={(e) => {
+                  const t = e.target.value;
+                  setSelectedTemplate(t);
+                  let tpl = '';
+                  if (t === 'WINNER') tpl = 'Congratulations {{name}}! You have won {{prize}}. Reply to claim.';
+                  else if (t === 'WELCOME') tpl = 'Welcome {{name}} to the contest {{contest_name}}! Good luck.';
+                  else if (t === 'UPDATES') tpl = 'Update: {{contest_name}} schedule has changed. Check the dashboard for details.';
+                  else tpl = '';
+                  setMessageForm({ ...messageForm, content: tpl });
+                }}
+                className="input-field"
+              >
+                <option value="">-- Select Template (optional) --</option>
+                <option value="WINNER">Winner</option>
+                <option value="WELCOME">Welcome</option>
+                <option value="UPDATES">Updates</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">You can use placeholders like <code className="bg-gray-100 px-1 rounded">{'{{name}}'}</code>, <code className="bg-gray-100 px-1 rounded">{'{{prize}}'}</code>, <code className="bg-gray-100 px-1 rounded">{'{{contest_name}}'}</code>.</p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -263,15 +284,16 @@ export const Communication: React.FC = () => {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() =>
+                onClick={() => {
                   setMessageForm({
-                    type: 'EMAIL',
+                    type: 'WHATSAPP',
                     contest_id: '',
                     recipient: '',
                     content: '',
                     is_bulk: false,
-                  })
-                }
+                  });
+                  setSelectedTemplate('');
+                }}
               >
                 Clear
               </Button>
