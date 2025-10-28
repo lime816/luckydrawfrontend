@@ -954,44 +954,53 @@ export const AdminManagement: React.FC = () => {
 
           {activeTab === 'permissions' && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Permission Matrix</h3>
-                <p className="text-sm text-gray-500">View all admin permissions at a glance</p>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">Permission Matrix</h3>
+                <p className="text-xs sm:text-sm text-gray-500">View all admin permissions at a glance</p>
               </div>
               
-              <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
-                <table className="w-full">
+              <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto -mx-3 sm:mx-0">
+                <table className="w-full min-w-max">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">
                         Admin
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        📊 Dashboard
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <span className="hidden sm:inline">📊 Dashboard</span>
+                        <span className="sm:hidden">📊</span>
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        🏆 Contests
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <span className="hidden sm:inline">🏆 Contests</span>
+                        <span className="sm:hidden">🏆</span>
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        👥 Participants
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <span className="hidden sm:inline">👥 Participants</span>
+                        <span className="sm:hidden">👥</span>
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        🎲 Draw
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <span className="hidden sm:inline">🎲 Draw</span>
+                        <span className="sm:hidden">🎲</span>
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        🏅 Winners
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <span className="hidden sm:inline">🏅 Winners</span>
+                        <span className="sm:hidden">🏅</span>
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        💬 Communication
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <span className="hidden sm:inline">💬 Communication</span>
+                        <span className="sm:hidden">💬</span>
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        📈 Analytics
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <span className="hidden sm:inline">📈 Analytics</span>
+                        <span className="sm:hidden">📈</span>
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        👤 Users
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <span className="hidden sm:inline">👤 Users</span>
+                        <span className="sm:hidden">👤</span>
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ⚙️ Settings
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <span className="hidden sm:inline">⚙️ Settings</span>
+                        <span className="sm:hidden">⚙️</span>
                       </th>
                     </tr>
                   </thead>
@@ -1015,37 +1024,37 @@ export const AdminManagement: React.FC = () => {
 
                       return (
                         <tr key={admin.admin_id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-white z-10">
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">{admin.name}</p>
-                              <p className="text-xs text-gray-500">{admin.custom_role || admin.role}</p>
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap sticky left-0 bg-white z-10">
+                            <div className="min-w-0">
+                              <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{admin.name}</p>
+                              <p className="text-xs text-gray-500 truncate">{admin.custom_role || admin.role}</p>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-center whitespace-nowrap">
                             {getPermissionBadge(admin.permissions?.dashboard)}
                           </td>
-                          <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-center whitespace-nowrap">
                             {getPermissionBadge(admin.permissions?.contests)}
                           </td>
-                          <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-center whitespace-nowrap">
                             {getPermissionBadge(admin.permissions?.participants)}
                           </td>
-                          <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-center whitespace-nowrap">
                             {getPermissionBadge(admin.permissions?.draw)}
                           </td>
-                          <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-center whitespace-nowrap">
                             {getPermissionBadge(admin.permissions?.winners)}
                           </td>
-                          <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-center whitespace-nowrap">
                             {getPermissionBadge(admin.permissions?.communication)}
                           </td>
-                          <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-center whitespace-nowrap">
                             {getPermissionBadge(admin.permissions?.analytics)}
                           </td>
-                          <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-center whitespace-nowrap">
                             {getPermissionBadge(admin.permissions?.user_management)}
                           </td>
-                          <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-center whitespace-nowrap">
                             {getPermissionBadge(admin.permissions?.settings)}
                           </td>
                         </tr>
@@ -1056,83 +1065,85 @@ export const AdminManagement: React.FC = () => {
               </div>
 
               {/* Legend */}
-              <div className="flex items-center gap-4 text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
-                <span className="font-medium">Legend:</span>
-                <div className="flex items-center gap-1">
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">Full</span>
-                  <span>= Read, Write, Update</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">R+W</span>
-                  <span>= Read + Write</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-700">Read</span>
-                  <span>= Read only</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600">None</span>
-                  <span>= No access</span>
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <span className="font-medium text-xs text-gray-600 block mb-2">Legend:</span>
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4 text-xs text-gray-600">
+                  <div className="flex items-center gap-1">
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">Full</span>
+                    <span className="hidden sm:inline">= Read, Write, Update</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">R+W</span>
+                    <span className="hidden sm:inline">= Read + Write</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-700">Read</span>
+                    <span className="hidden sm:inline">= Read only</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600">None</span>
+                    <span className="hidden sm:inline">= No access</span>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
           {activeTab === 'access' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">Dashboard Access Control</h3>
-                  <p className="text-sm text-gray-500 mt-1">Manage which admins can access the dashboard</p>
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900">Dashboard Access Control</h3>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-1">Manage which admins can access the dashboard</p>
                 </div>
               </div>
 
               {/* Access Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-3 sm:p-4">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-green-800">Full Access</p>
-                      <p className="text-2xl font-bold text-green-900 mt-1">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-green-800">Full Access</p>
+                      <p className="text-xl sm:text-2xl font-bold text-green-900 mt-1">
                         {admins.filter(a => a.permissions?.dashboard?.length === 3).length}
                       </p>
                     </div>
-                    <UserCheck className="w-8 h-8 text-green-600" />
+                    <UserCheck className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 flex-shrink-0" />
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-3 sm:p-4">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-blue-800">Read Only</p>
-                      <p className="text-2xl font-bold text-blue-900 mt-1">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-blue-800">Read Only</p>
+                      <p className="text-xl sm:text-2xl font-bold text-blue-900 mt-1">
                         {admins.filter(a => {
                           const perms = a.permissions?.dashboard || [];
                           return perms.includes('read') && perms.length < 3;
                         }).length}
                       </p>
                     </div>
-                    <Eye className="w-8 h-8 text-blue-600" />
+                    <Eye className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 flex-shrink-0" />
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-lg p-4">
+                <div className="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-lg p-3 sm:p-4">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-red-800">No Access</p>
-                      <p className="text-2xl font-bold text-red-900 mt-1">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-red-800">No Access</p>
+                      <p className="text-xl sm:text-2xl font-bold text-red-900 mt-1">
                         {admins.filter(a => !a.permissions?.dashboard || a.permissions.dashboard.length === 0).length}
                       </p>
                     </div>
-                    <Lock className="w-8 h-8 text-red-600" />
+                    <Lock className="w-6 h-6 sm:w-8 sm:h-8 text-red-600 flex-shrink-0" />
                   </div>
                 </div>
               </div>
 
               {/* Admin Access List */}
               <div className="bg-white rounded-lg border border-gray-200">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h4 className="text-sm font-semibold text-gray-900">Admin Dashboard Access</h4>
+                <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+                  <h4 className="text-xs sm:text-sm font-semibold text-gray-900">Admin Dashboard Access</h4>
                 </div>
                 <div className="divide-y divide-gray-200">
                   {admins.map((admin) => {
@@ -1142,41 +1153,44 @@ export const AdminManagement: React.FC = () => {
                     const hasNoAccess = dashboardPerms.length === 0;
 
                     return (
-                      <div key={admin.admin_id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                      <div key={admin.admin_id} className="px-3 sm:px-6 py-3 sm:py-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+                          <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0">
                               {admin.name.charAt(0).toUpperCase()}
                             </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">{admin.name}</p>
-                              <p className="text-xs text-gray-500">{admin.email}</p>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{admin.name}</p>
+                              <p className="text-xs text-gray-500 truncate">{admin.email}</p>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                             {/* Role Badge */}
-                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                            <span className="px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                               {admin.custom_role || admin.role}
                             </span>
 
                             {/* Access Badge */}
                             {hasFullAccess && (
-                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+                              <span className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
                                 <UserCheck className="w-3 h-3" />
-                                Full Access
+                                <span className="hidden sm:inline">Full Access</span>
+                                <span className="sm:hidden">Full</span>
                               </span>
                             )}
                             {hasReadOnly && (
-                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                              <span className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
                                 <Eye className="w-3 h-3" />
-                                Read Only
+                                <span className="hidden sm:inline">Read Only</span>
+                                <span className="sm:hidden">Read</span>
                               </span>
                             )}
                             {hasNoAccess && (
-                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-200">
+                              <span className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-200">
                                 <Lock className="w-3 h-3" />
-                                No Access
+                                <span className="hidden sm:inline">No Access</span>
+                                <span className="sm:hidden">None</span>
                               </span>
                             )}
 
